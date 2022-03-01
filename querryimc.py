@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python
 
 from pyhpeimc.auth import IMCAuth
 from pyhpeimc.plat.device import get_all_devs
@@ -10,13 +10,12 @@ import time
 import re
 
 '''
-This code is based off of the CST_IMC project at Colorado State Universities Cybersecurity Internship.
+This code is based off of the CST_IMC project at Colorado State University's Cybersecurity Internship.
 This code was forked 2/28/2022
 '''
 
 
 def authenticate_user(tries=2):
-    system("cls")
     uname = input("Username: ")
     passwd= getpass.getpass("Password: ")
     ip = "10.100.201.199"
@@ -33,90 +32,20 @@ def authenticate_user(tries=2):
     print("\t*Connected To IMC Server*")
     return auth
 
-def saveData(data, file_name):
-    with open(file_name, "w") as json_file:
-        json.dump(data, json_file, indent=4)
-    print(f"Saved ICM Data To '{file_name}'")
 
 
-def formatAsset(asset, componentDict):
-    # Add component data of the asset to the top level
-    for key in componentDict.keys():
-        if key[1] == asset['label']:
-            asset.update(componentDict[key])
-            pass
-
-    keyValue = [['Owner', 'contact'],
-                ['name', 'label'],
-                ['asset_tag', 'id'],
-                ['MAC', 'mac'],
-                ['OS', 'sysDescription'],
-                ['IP', 'ip'],
-                ['IPMask', 'mask'],
-                ['location_name', 'location'],
-                ['model_name', 'typeName'],
-                ['manufacturer_name', 'mfgName'],
-                ['category_name', 'devCategoryImgSrc'],
-                ['Serial', 'serialNum'],
-                ['BIOS', 'firmwareVersion']]
-    newAsset = {
-        'Source': 'IMC',
-        'status':  2,
-        'component': [],
-        'custom_fields': {}
-    }
-    for keys in keyValue:
-        newAsset[keys[0]] = re.sub(r'\\|"|\r|\n|\'', " ", asset[keys[1]]) if keys[1] in asset and len(asset[keys[1]]) > 0 else 'UNSPECIFIED'
-    newAsset['asset_tag'] = f"IMC:{newAsset['asset_tag']}"
-
-    return newAsset
-
-def createAssets(asset_dict, component_dict):
-    dictionary = {}
-    for i in asset_dict:
-        id = asset_dict[i]['id']
-        dictionary[id] = formatAsset(asset_dict[i], component_dict)
-    return dictionary
-
-def appendComponent(asset_dict,component_dict):
-    keyValue = [['Description', 'desc'],
-                ['Relative Position', 'relPos'],
-                ['Name', 'name'],
-                ['Hard Version', 'hardVersion'],
-                ['Soft Version', 'softVersion'],
-                ['Serial', 'serialNum'],
-                ['Manufacturer', 'mfgName'],
-                ['Model', 'model'],
-                ['Asset', 'asset']]
-    for i in component_dict:
-        if component_dict[i]['desc'] == asset_dict[i[0]]['name']:
-            continue
-
-        newComponent = {}
-        for keys in keyValue:
-            newComponent[keys[0]] = re.sub(r'\\|"|\r|\n', " ", component_dict[i][keys[1]]) if keys[1] in component_dict[i] and len(component_dict[i][keys[1]]) > 0 else 'UNSPECIFIED'
-        asset_dict[i[0]]['component'].append(newComponent)
-    return asset_dict
-
-def formatDict(dict, key, asset=True):
-    dictionary = {}
+def formatDict(dict, key):
+    switch_list = ''
     for item in dict:
-        if asset:
-            dictionary[item[key]] = item
-        else:
-            dictionary[(item[key[0]], item[key[1]], item[key[2]])] = item
-    return dictionary
+        if item.get('devCategoryImgSrc') == 'switch':
+            switch_list += item['ip'] + '\n'
+    return switch_list
 
 #_____Main_________
 if __name__ == '__main__':
     authentication_token = authenticate_user()
 
-    asset_dict = formatDict((get_all_devs(authentication_token, "http://10.100.201.199:8080")), 'id')
-    print("\tGetting All Device Details...")
-    component_dict = formatDict(get_dev_asset_details_all(authentication_token, "http://10.100.201.199:8080"), ('devId', 'desc', 'asset'), asset=False)
-    print("\tCreating Assets...")
-    combined_dict = createAssets(asset_dict, component_dict)
-    print("\tAppending Data to Assets...")
-    combined_dict = appendComponent(combined_dict, component_dict)
+    switch_ips_as_string = formatDict((get_all_devs(authentication_token, "http://10.100.201.199:8080")), 'id')
 
-    saveData(combined_dict, "IMC assets.json")
+    with open('completed_devices_file', 'w') as fd:
+        fd.write(switch_ips_as_string)

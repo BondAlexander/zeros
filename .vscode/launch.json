@@ -10,6 +10,13 @@
             "request": "launch",
             "program": "querryimc.py",
             "console": "integratedTerminal"
+        },
+        {
+            "name": "Run sandbox.py",
+            "type": "python",
+            "request": "launch",
+            "program": "sandbox.py",
+            "console": "integratedTerminal"
         }
     ]
 }
