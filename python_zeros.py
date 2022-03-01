@@ -61,12 +61,12 @@ def main():
             'device_type': 'hp_procurve',
             'ip': ip_address_of_device, 
             'username': credentials['SSH']['username'],
-            'password': credentials['SSH']['username'],
+            'password': credentials['SSH']['password'],
             'global_delay_factor': .25
         }
 
         try:
-            net_connect = ConnectHandler(**hp_devices)
+            net_connect = ConnectHandler(timeout=5, **hp_devices)
         except (AuthenticationException):
             print ('********************Authentication failure: ' + ip_address_of_device)
             continue
@@ -88,6 +88,7 @@ def main():
         intoutput = net_connect.send_command_expect('show interface', expect_string=r">")
         linebreak = "*-*-*-*-" * 15
         finish = datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
+        net_connect.disconnect()
         print('Operation Complete - ' + finish)
         print('\n' * 1)
         #Append the output to the results file
@@ -99,6 +100,7 @@ def main():
 
 
     finish = datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
+    
     print('Operation Complete - ' + finish)
 
 if __name__ == '__main__':
