@@ -38,11 +38,15 @@ def formatDict(dict, key):
     return switch_list
 
 
-#_____Main_________
-if __name__ == '__main__':
+def main():
     authentication_token = authenticate_user()
 
     switch_ips_as_string = formatDict((get_all_devs(authentication_token, "http://10.100.201.199:8080")), 'id')
 
     with open('completed_devices_file', 'w') as fd:
         fd.write(switch_ips_as_string)
+
+
+#_____Main_________
+if __name__ == '__main__':
+    main()
