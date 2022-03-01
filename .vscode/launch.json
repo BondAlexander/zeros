@@ -12,6 +12,13 @@
             "console": "integratedTerminal"
         },
         {
+            "name": "MAIN PROGRAM",
+            "type": "python",
+            "request": "launch",
+            "program": "python_zeros.py",
+            "console": "integratedTerminal"
+        },
+        {
             "name": "Run sandbox.py",
             "type": "python",
             "request": "launch",
