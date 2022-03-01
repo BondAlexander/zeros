@@ -2,12 +2,9 @@
 
 from pyhpeimc.auth import IMCAuth
 from pyhpeimc.plat.device import get_all_devs
-from pyhpeimc.plat.netassets import get_dev_asset_details_all
 import getpass
-import json
-from os import system
 import time
-import re
+
 
 '''
 This code is based off of the CST_IMC project at Colorado State University's Cybersecurity Internship.
@@ -33,13 +30,13 @@ def authenticate_user(tries=2):
     return auth
 
 
-
 def formatDict(dict, key):
     switch_list = ''
     for item in dict:
         if item.get('devCategoryImgSrc') == 'switch':
             switch_list += item['ip'] + '\n'
     return switch_list
+
 
 #_____Main_________
 if __name__ == '__main__':
