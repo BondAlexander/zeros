@@ -35,11 +35,10 @@ def to_doc_w(file_name, varable):
     f.close()
 
 def main():
-    global credentials
     credentials = {}
     with open('auth.json', 'r') as fd:
-        credentials = json.loads(fd)
-    querryimc.main()
+        credentials = json.loads(fd.read())
+    querryimc.main(credentials)
     with open('/home/gregorya/zeros/completed_devices_file') as f:
 
         devices_list = f.read().splitlines()

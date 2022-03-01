@@ -2,7 +2,6 @@
 
 from pyhpeimc.auth import IMCAuth
 from pyhpeimc.plat.device import get_all_devs
-import getpass
 import time
 
 
@@ -12,8 +11,7 @@ This code was forked 2/28/2022
 '''
 
 
-def authenticate_user(tries=2):
-    global credentials
+def authenticate_user(credentials, tries=2):
     uname = credentials['IMC']['username']
     passwd= credentials['IMC']['password']
     ip = "10.100.201.199"
@@ -39,8 +37,8 @@ def formatDict(dict, key):
     return switch_list
 
 
-def main():
-    authentication_token = authenticate_user()
+def main(credentials: dict):
+    authentication_token = authenticate_user(credentials)
 
     switch_ips_as_string = formatDict((get_all_devs(authentication_token, "http://10.100.201.199:8080")), 'id')
 
