@@ -13,8 +13,9 @@ This code was forked 2/28/2022
 
 
 def authenticate_user(tries=2):
-    uname = input("Username: ")
-    passwd= getpass.getpass("Password: ")
+    global credentials
+    uname = credentials['IMC']['username']
+    passwd= credentials['IMC']['password']
     ip = "10.100.201.199"
     port = "8080"
     auth = IMCAuth("http://", str(ip), str(port), uname, passwd)

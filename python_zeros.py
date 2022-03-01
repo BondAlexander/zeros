@@ -14,13 +14,12 @@
 
 #from getpass import getpass
 import datetime
+import json
+import src.querryimc as querryimc
 from netmiko import ConnectHandler
 from netmiko.ssh_exception import NetMikoTimeoutException
 from paramiko.ssh_exception import SSHException
 from netmiko.ssh_exception import AuthenticationException
-
-username = "monitor"
-password = "switch_view"
 
 
 def to_doc_a(file_name, varable):
@@ -36,6 +35,11 @@ def to_doc_w(file_name, varable):
     f.close()
 
 def main():
+    global credentials
+    credentials = {}
+    with open('auth.json', 'r') as fd:
+        credentials = json.loads(fd)
+    querryimc.main()
     with open('/home/gregorya/zeros/completed_devices_file') as f:
 
         devices_list = f.read().splitlines()
@@ -57,8 +61,8 @@ def main():
         hp_devices = {
             'device_type': 'hp_procurve',
             'ip': ip_address_of_device, 
-            'username': username,
-            'password': password,
+            'username': credentials['SSH']['username'],
+            'password': credentials['SSH']['username'],
             'global_delay_factor': .25
         }
 
@@ -84,9 +88,6 @@ def main():
         sysoutput = net_connect.send_command_expect('show system', expect_string=r">")
         intoutput = net_connect.send_command_expect('show interface', expect_string=r">")
         linebreak = "*-*-*-*-" * 15
-        #print(sysoutput)
-        #print(intoutput)
-        #print(linebreak)
         finish = datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
         print('Operation Complete - ' + finish)
         print('\n' * 1)

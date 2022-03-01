@@ -2,5 +2,6 @@
 .DS_Store
 .
 completed_devices_file (ORIGINAL)
+auth.json
 qna.txt
 sandbox.py
