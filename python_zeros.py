@@ -55,48 +55,59 @@ def main():
 
 
     for devices in devices_list:
-        print('Connecting to device ' + devices)
-        ip_address_of_device = devices
-        hp_devices = {
-            'device_type': 'hp_procurve',
-            'ip': ip_address_of_device, 
-            'username': credentials['SSH']['username'],
-            'password': credentials['SSH']['password'],
-            'global_delay_factor': .25
-        }
+        for attempt in [1,2]:
+            print('Connecting to device ' + devices)
+            ip_address_of_device = devices
+            hp_devices = {
+                'device_type': 'hp_procurve',
+                'ip': ip_address_of_device, 
+                'username': credentials['SSH']['username'],
+                'password': credentials['SSH']['password'],
+                'global_delay_factor': .25
+            }
 
-        try:
-            net_connect = ConnectHandler(timeout=5, **hp_devices)
-        except (AuthenticationException):
-            print ('********************Authentication failure: ' + ip_address_of_device)
-            continue
-        except (NetMikoTimeoutException):
-            print ('-------------------Timeout to device: ' + ip_address_of_device)
-            continue
-        except (EOFError):
-            print ("End of file while attempting device " + ip_address_of_device)
-            continue
-        except (SSHException):
-            print ('SSH Issue. Are you sure SSH is enabled? ' + ip_address_of_device)
-            continue
-        except Exception as unknown_error:
-            print ('Some other error: ' + str(unknown_error))
-            continue
+            try:
+                if attempt == 2:
+                    net_connect = ConnectHandler(timeout=3, **hp_devices)
+                else:
+                    net_connect = ConnectHandler(timeout=10, **hp_devices)
+            except (AuthenticationException):
+                print ('********************Authentication failure: ' + ip_address_of_device)
+                break
+            except (NetMikoTimeoutException):
+                if attempt == 1:
+                    print(f'-------------------Timeout to device: {ip_address_of_device}\nRetrying...')
+                    continue
+                else:
+                    print (f'-------------------Timeout to device: {ip_address_of_device}\nSkipping...')
+                    break
+            except (EOFError):
+                print ("End of file while attempting device " + ip_address_of_device)
+                break
+            except (SSHException):
+                print ('SSH Issue. Are you sure SSH is enabled? ' + ip_address_of_device)
+                break
+            except Exception as unknown_error:
+                print ('Some other error: ' + str(unknown_error))
+                break
 
-
-        sysoutput = net_connect.send_command_expect('show system', expect_string=r">")
-        intoutput = net_connect.send_command_expect('show interface', expect_string=r">")
-        linebreak = "*-*-*-*-" * 15
-        finish = datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
-        net_connect.disconnect()
-        print('Operation Complete - ' + finish)
-        print('\n' * 1)
-        #Append the output to the results file
-        to_doc_a(file_name, devices)
-        to_doc_a(file_name, sysoutput)
-        to_doc_a(file_name, intoutput)
-        to_doc_a(file_name, linebreak)
-        to_doc_a(file_name, finish)
+            try:
+                sysoutput = net_connect.send_command_expect('show system', expect_string=r">")
+                intoutput = net_connect.send_command_expect('show interface', expect_string=r">")
+            except OSError as e:
+                print(e)
+                continue
+            linebreak = "*-*-*-*-" * 15
+            finish = datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
+            net_connect.disconnect()
+            print('Operation Complete - ' + finish)
+            print('\n' * 1)
+            #Append the output to the results file
+            to_doc_a(file_name, devices)
+            to_doc_a(file_name, sysoutput)
+            to_doc_a(file_name, intoutput)
+            to_doc_a(file_name, linebreak)
+            to_doc_a(file_name, finish)
 
 
     finish = datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
