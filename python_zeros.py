@@ -14,12 +14,18 @@
 
 #from getpass import getpass
 import datetime
+from fileinput import filename
+import logging
 import json
+import sys
+import os
 import src.querryimc as querryimc
 from netmiko import ConnectHandler
 from netmiko.ssh_exception import NetMikoTimeoutException
 from paramiko.ssh_exception import SSHException
 from netmiko.ssh_exception import AuthenticationException
+
+
 
 
 def to_doc_a(file_name, varable):
@@ -35,6 +41,11 @@ def to_doc_w(file_name, varable):
     f.close()
 
 def main():
+    file_name = datetime.datetime.now().strftime("%Y%m%d-%H%M")
+    if not os.path.exists('logs/'):
+        os.mkdir('logs/')
+    fname = f'logs/{filename}.log'
+    logging.basicConfig(filename=fname)
     credentials = {}
     with open('auth.json', 'r') as fd:
         credentials = json.loads(fd.read())
@@ -46,9 +57,6 @@ def main():
     start = datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
 
     print('Begin operation - ' + start)
-
-
-    file_name = datetime.datetime.now().strftime("%Y%m%d-%H%M")
 
     to_doc_w(file_name, "")
 
@@ -79,16 +87,16 @@ def main():
                     print(f'-------------------Timeout to device: {ip_address_of_device}\nRetrying...')
                     continue
                 else:
-                    print (f'-------------------Timeout to device: {ip_address_of_device}\nSkipping...')
+                    logging.warning(f'-------------------Timeout to device: {ip_address_of_device}\nSkipping...')
                     break
             except (EOFError):
-                print ("End of file while attempting device " + ip_address_of_device)
+                logging.warning("End of file while attempting device " + ip_address_of_device)
                 break
             except (SSHException):
-                print ('SSH Issue. Are you sure SSH is enabled? ' + ip_address_of_device)
+                logging.warning('SSH Issue. Are you sure SSH is enabled? ' + ip_address_of_device)
                 break
             except Exception as unknown_error:
-                print ('Some other error: ' + str(unknown_error))
+                logging.warning('Some other error: ' + str(unknown_error))
                 break
 
             try:
