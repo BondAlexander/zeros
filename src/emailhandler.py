@@ -21,11 +21,12 @@ class EmailHandler:
 
         -- Zeros Program
         """
+        self.msg = EmailMessage()
         self._load_config()
 
     def _load_config(self):
         with open('auth.json', 'r') as fd:
-            config = json.load(fd)
+            config = json.load(fd).get('Email')
             self.username = config.get('username')
             self.password = config.get('password')
             self.server = config.get('server')
@@ -36,13 +37,13 @@ class EmailHandler:
         self.body.replace('<INSERT NUMBER OF CHANGES>', num_ip_changes)
         self.body.replace('<NUMBER OF FAILED CONNECTIONS>', num_failed)
 
+    def update_email_message(self):
+        self.msg['Subject'] = 'Daily Switch Ports Update'
+        self.msg['From'] = self.username
+        self.msg['To'] = self.recipient
+        self.msg.set_content(self.body)
+
     def send_update_email(self):
-        msg = EmailMessage()
-        msg['Subject'] = 'Daily Switch Ports Update'
-        msg['From'] = self.username
-        msg['To'] = self.recipient
-        msg.set_content(self.body)
-        with smtplib.SMTP_SSL(self.server, self.port) as smtp:
-            smtp.login(self.username, self.password)
-            smtp.send(msg)
+        with smtplib.SMTP(self.server, self.port) as smtp:
+            smtp.send_message(self.msg)
 
