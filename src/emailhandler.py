@@ -13,9 +13,9 @@ class EmailHandler:
         self.body = """
 Hello,
    This is an automated update to inform you of the current activity on \
-switch ports. Today's scan found <INSERT NUMBER OF CHANGES> IP addrsses \
-that have changed since last scan. Today's scan found <NUMBER OF FAILED \
-CONNECTIONS>. View the attatched log file for details. The second \
+switch ports. Today's scan found <INSERT NUMBER OF CHANGES> IP address(es) \
+that have changed since last scan. Today's scan failed to connect to <NUMBER OF FAILED \
+CONNECTIONS> IP(s) out of <INSERT NUMBER OF DEVICES> device. View the attatched log file for details. The second \
 attatched file has the output from all switches that were successfully \
 querried.
 
@@ -33,17 +33,20 @@ querried.
             self.port = config.get('port')
             self.recipient = config.get('recipient')
 
-    def update_email_body(self, num_ip_changes, num_failed):
-        self.body.replace('<INSERT NUMBER OF CHANGES>', num_ip_changes)
-        self.body.replace('<NUMBER OF FAILED CONNECTIONS>', num_failed)
+    def update_email_body(self, num_ip_changes, num_failed, num_devices):
+        self.body = self.body.replace('<INSERT NUMBER OF CHANGES>', str(num_ip_changes))
+        self.body = self.body.replace('<NUMBER OF FAILED CONNECTIONS>', str(num_failed))
+        self.body = self.body.replace('<INSERT NUMBER OF DEVICES>', str(num_devices))
 
-    def update_email_message(self):
+    def send_update_email(self, fname):
         self.msg['Subject'] = 'Daily Switch Ports Update'
         self.msg['From'] = self.username
         self.msg['To'] = self.recipient
         self.msg.set_content(self.body)
-
-    def send_update_email(self):
+        for file in [f'{fname}', f'logs/{fname}.log']:
+            with open(file, 'rb') as fd:
+                file_data = fd.read()
+            self.msg.add_attachment(file_data, maintype='application', subtype='octet-stream', filename=file.replace('logs/', ''))
         with smtplib.SMTP(self.server, self.port) as smtp:
             smtp.send_message(self.msg)
 
