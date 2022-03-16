@@ -11,16 +11,16 @@ class EmailHandler:
         self.recipient = None
         self.path_to_log_file = None
         self.body = """
-        Hello,
-            This is an automated update to inform you of the current activity on \
-        switch ports. Today's scan found <INSERT NUMBER OF CHANGES> IP addrsses \
-        that have changed since last scan. Today's scan found <NUMBER OF FAILED \
-        CONNECTIONS>. View the attatched log file for details. The second \
-        attatched file has the output from all switches that were successfully \
-        querried.
+Hello,
+   This is an automated update to inform you of the current activity on \
+switch ports. Today's scan found <INSERT NUMBER OF CHANGES> IP addrsses \
+that have changed since last scan. Today's scan found <NUMBER OF FAILED \
+CONNECTIONS>. View the attatched log file for details. The second \
+attatched file has the output from all switches that were successfully \
+querried.
 
-        -- Zeros Program
-        """
+-- Zeros Program
+"""
         self.msg = EmailMessage()
         self._load_config()
 
