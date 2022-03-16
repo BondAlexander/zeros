@@ -10,9 +10,6 @@
 #v7 Minor tweaks
 #v8 Working with Global Delay Factor and search patterns
 
-
-
-#from getpass import getpass
 import datetime
 from fileinput import filename
 import logging
@@ -25,9 +22,6 @@ from netmiko import ConnectHandler
 from netmiko.ssh_exception import NetMikoTimeoutException
 from paramiko.ssh_exception import SSHException
 from netmiko.ssh_exception import AuthenticationException
-
-
-
 
 
 def to_doc_a(file_name, varable):
