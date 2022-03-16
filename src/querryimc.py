@@ -2,8 +2,6 @@
 
 from pyhpeimc.auth import IMCAuth
 from pyhpeimc.plat.device import get_all_devs
-import time
-
 
 '''
 This code is based off of the CST_IMC project at Colorado State University's Cybersecurity Internship.
@@ -17,14 +15,9 @@ def authenticate_user(credentials, tries=2):
     ip = "10.100.201.199"
     port = "8080"
     auth = IMCAuth("http://", str(ip), str(port), uname, passwd)
-
     if '200' not in str(auth.get_auth()):
-        if tries == 0:
-            print('Too many attemps. Exiting program.')
-            exit()
-        print(f'You have {tries} more attempts.')
-        time.sleep(2)
-        authenticate_user(tries-1)
+        print('Incorrect credentials for IMC server. Exiting...')
+        exit(0)
     print("\t*Connected To IMC Server*")
     return auth
 
@@ -39,9 +32,7 @@ def formatDict(dict, key):
 
 def main(credentials: dict):
     authentication_token = authenticate_user(credentials)
-
     switch_ips_as_string = formatDict((get_all_devs(authentication_token, "http://10.100.201.199:8080")), 'id')
-
     with open('completed_devices_file', 'w') as fd:
         fd.write(switch_ips_as_string)
 

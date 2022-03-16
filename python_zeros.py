@@ -47,23 +47,16 @@ def main():
     if not os.path.exists('logs/'):
         os.mkdir('logs/')
     fname = f'logs/{file_name}.log'
-    logging.basicConfig(filename=fname)
+    logging.basicConfig(filename=fname, level=logging.INFO)
     credentials = {}
     with open('auth.json', 'r') as fd:
         credentials = json.loads(fd.read())
     querryimc.main(credentials)
     with open('/home/gregorya/zeros/completed_devices_file') as f:
-
         devices_list = f.read().splitlines()
-
     start = datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
-
     print('Begin operation - ' + start)
-
     to_doc_w(file_name, "")
-
-
-
     for devices in devices_list:
         for attempt in [1,2]:
             print('Connecting to device ' + devices)
@@ -75,18 +68,17 @@ def main():
                 'password': credentials['SSH']['password'],
                 'global_delay_factor': .25
             }
-
             try:
                 if attempt == 2:
                     net_connect = ConnectHandler(timeout=3, **hp_devices)
                 else:
                     net_connect = ConnectHandler(timeout=10, **hp_devices)
             except (AuthenticationException):
-                print ('********************Authentication failure: ' + ip_address_of_device)
+                logging.warning('********************Authentication failure: ' + ip_address_of_device)
                 break
             except (NetMikoTimeoutException):
                 if attempt == 1:
-                    print(f'-------------------Timeout to device: {ip_address_of_device}\nRetrying...')
+                    logging.warning(f'-------------------Timeout to device: {ip_address_of_device}\nRetrying...')
                     continue
                 else:
                     logging.warning(f'-------------------Timeout to device: {ip_address_of_device}\nSkipping...')
@@ -100,7 +92,6 @@ def main():
             except Exception as unknown_error:
                 logging.warning('Some other error: ' + str(unknown_error))
                 break
-
             try:
                 sysoutput = net_connect.send_command_expect('show system', expect_string=r">")
                 intoutput = net_connect.send_command_expect('show interface', expect_string=r">")
@@ -118,10 +109,7 @@ def main():
             to_doc_a(file_name, intoutput)
             to_doc_a(file_name, linebreak)
             to_doc_a(file_name, finish)
-
-
     finish = datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
-    
     print('Operation Complete - ' + finish)
     email_handler = EmailHandler()
     email_handler.send_update_email()
