@@ -40,6 +40,8 @@ def main():
     if not os.path.exists('logs/'):
         os.mkdir('logs/')
     fname = f'logs/{file_name}.log'
+    if not os.path.exists('output/'):
+        os.mkdir('output/')
     logging.basicConfig(filename=fname)
     credentials = {}
     with open('auth.json', 'r') as fd:
@@ -103,11 +105,11 @@ def main():
             print('Operation Complete - ' + finish)
             print('\n' * 1)
             #Append the output to the results file
-            to_doc_a(file_name, devices)
-            to_doc_a(file_name, sysoutput)
-            to_doc_a(file_name, intoutput)
-            to_doc_a(file_name, linebreak)
-            to_doc_a(file_name, finish)
+            to_doc_a(f'output/{file_name}', devices)
+            to_doc_a(f'output/{file_name}', sysoutput)
+            to_doc_a(f'output/{file_name}', intoutput)
+            to_doc_a(f'output/{file_name}', linebreak)
+            to_doc_a(f'output/{file_name}', finish)
             break
     finish = datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
     print('Operation Complete - ' + finish)

@@ -2,6 +2,7 @@
 
 from pyhpeimc.auth import IMCAuth
 from pyhpeimc.plat.device import get_all_devs
+import os
 
 '''
 This code is based off of the CST_IMC project at Colorado State University's Cybersecurity Internship.
@@ -22,19 +23,25 @@ def authenticate_user(credentials, tries=2):
     return auth
 
 
-def formatDict(dict, key):
-    switch_list = ''
+def formatDict(dict):
+    switch_list = []
     for item in dict:
         if item.get('devCategoryImgSrc') == 'switch':
-            switch_list += item['ip'] + '\n'
+            switch_list.append(item['ip'])
     return switch_list
 
 
+def update_list(new_switch_list):
+    new_switch_ips = formatDict(new_switch_list, 'id')
+    with open('completed_devices_file', 'r') as fd:
+        old_switch_ips = fd.read().split('\n')
+    with open('completed_devices_file', 'w') as fd:
+        fd.write(new_switch_ips.join('\n'))
+
 def main(credentials: dict):
     authentication_token = authenticate_user(credentials)
-    switch_ips_as_string = formatDict((get_all_devs(authentication_token, "http://10.100.201.199:8080")), 'id')
-    with open('completed_devices_file', 'w') as fd:
-        fd.write(switch_ips_as_string)
+    new_switch_list = get_all_devs(authentication_token, "http://10.100.201.199:8080")
+    update_list(new_switch_list)
 
 
 #_____Main_________
