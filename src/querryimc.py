@@ -33,25 +33,25 @@ def formatDict(dict):
 
 
 def update_list(new_switch_list):
+    num_changes = 0
     new_switch_ips = formatDict(new_switch_list)
     with open('completed_devices_file', 'r') as fd:
         old_switch_ips = fd.read().split('\n')
     for ip in old_switch_ips:
         if ip not in new_switch_ips:
             logging.warning(f'Removing {ip} from list of switches')
+            num_changes += 1
     for ip in new_switch_ips:
         if ip not in old_switch_ips:
             logging.warning(f'Adding {ip} to list of switches')
+            num_changes += 1
     with open('completed_devices_file', 'w') as fd:
         fd.write('\n'.join(new_switch_ips))
+    return num_changes
 
 
-def main(credentials: dict):
+def querry_imc(credentials: dict):
     authentication_token = authenticate_user(credentials)
     new_switch_list = get_all_devs(authentication_token, "http://10.100.201.199:8080")
-    update_list(new_switch_list)
-
-
-#_____Main_________
-if __name__ == '__main__':
-    main()
+    num_changes = update_list(new_switch_list)
+    return num_changes

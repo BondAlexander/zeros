@@ -35,23 +35,8 @@ def to_doc_w(file_name, varable):
     f.write(varable)
     f.close()
 
-def main():
-    file_name = datetime.datetime.now().strftime("%Y%m%d-%H%M")
-    if not os.path.exists('logs/'):
-        os.mkdir('logs/')
-    fname = f'logs/{file_name}.log'
-    if not os.path.exists('output/'):
-        os.mkdir('output/')
-    logging.basicConfig(filename=fname)
-    logging.getLogger('SSHException').setLevel(logging.CRITICAL)
-    credentials = {}
-    with open('auth.json', 'r') as fd:
-        credentials = json.loads(fd.read())
-    querryimc.main(credentials)
-    with open('completed_devices_file') as f:
-        devices_list = f.read().splitlines()
-    start = datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
-    print('Begin operation - ' + start)
+
+def querry_switches(devices_list, credentials, file_name):
     num_failed = 0
     for devices in devices_list:
         for attempt in [1,2]:
@@ -70,7 +55,7 @@ def main():
                 else:
                     net_connect = ConnectHandler(timeout=10, **hp_devices)
             except (AuthenticationException):
-                logging.error('********************Authentication failure: ' + ip_address_of_device)
+                logging.error('Authentication failure: ' + ip_address_of_device)
                 num_failed += 1
                 break
             except (NetMikoTimeoutException):
@@ -78,7 +63,7 @@ def main():
                     print(f'-------------------Timeout to device: {ip_address_of_device}\nRetrying...')
                     continue
                 else:
-                    logging.error(f'-------------------Timeout to device: {ip_address_of_device}\nSkipping...')
+                    logging.error(f'Timeout to device: {ip_address_of_device} Skipping...')
                     num_failed += 1
                     break
             except (EOFError):
@@ -94,10 +79,10 @@ def main():
                 num_failed += 1
                 break
             try:
-                sysoutput = net_connect.send_command_expect('show system', expect_string=r">")
-                intoutput = net_connect.send_command_expect('show interface', expect_string=r">")
+                sysoutput = net_connect.send_command_expect('show system', expect_string=r"")
+                intoutput = net_connect.send_command_expect('show interface', expect_string=r"")
             except OSError as e:
-                print(e)
+                logging.error(f'Unexpected output format received from {ip_address_of_device}: \"{e}\"')
                 continue
             linebreak = "*-*-*-*-" * 15
             finish = datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
@@ -111,11 +96,33 @@ def main():
             to_doc_a(f'output/{file_name}', linebreak)
             to_doc_a(f'output/{file_name}', finish)
             break
+    return num_failed
+
+
+def main():
+    file_name = datetime.datetime.now().strftime("%Y%m%d-%H%M")
+    if not os.path.exists('logs/'):
+        os.mkdir('logs/')
+    fname = f'logs/{file_name}.log'
+    if not os.path.exists('output/'):
+        os.mkdir('output/')
+    logging.basicConfig(filename=fname)
+    logging.getLogger('paramiko.transport').setLevel(logging.CRITICAL)
+    credentials = {}
+    with open('auth.json', 'r') as fd:
+        credentials = json.loads(fd.read())
+    num_changes = querryimc.querry_imc(credentials)
+    with open('completed_devices_file') as f:
+        devices_list = f.read().splitlines()
+    start = datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
+    print('Begin operation - ' + start)
+    num_failed = querry_switches(devices_list, credentials, file_name)
     finish = datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
     print('Operation Complete - ' + finish)
     email_handler = EmailHandler()
-    email_handler.update_email_body(0, num_failed, len(devices_list))
+    email_handler.update_email_body(num_changes, num_failed, len(devices_list))
     email_handler.send_update_email(file_name)
+
 
 if __name__ == '__main__':
     main()
