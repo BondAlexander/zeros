@@ -43,6 +43,7 @@ def main():
     if not os.path.exists('output/'):
         os.mkdir('output/')
     logging.basicConfig(filename=fname)
+    logging.getLogger('SSHException').setLevel(logging.CRITICAL)
     credentials = {}
     with open('auth.json', 'r') as fd:
         credentials = json.loads(fd.read())
