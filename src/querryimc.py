@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import logging
 from pyhpeimc.auth import IMCAuth
 from pyhpeimc.plat.device import get_all_devs
 import os
@@ -32,11 +33,18 @@ def formatDict(dict):
 
 
 def update_list(new_switch_list):
-    new_switch_ips = formatDict(new_switch_list, 'id')
+    new_switch_ips = formatDict(new_switch_list)
     with open('completed_devices_file', 'r') as fd:
         old_switch_ips = fd.read().split('\n')
+    for ip in old_switch_ips:
+        if ip not in new_switch_ips:
+            logging.warning(f'Removing {ip} from list of switches')
+    for ip in new_switch_ips:
+        if ip not in old_switch_ips:
+            logging.warning(f'Adding {ip} to list of switches')
     with open('completed_devices_file', 'w') as fd:
-        fd.write(new_switch_ips.join('\n'))
+        fd.write('\n'.join(new_switch_ips))
+
 
 def main(credentials: dict):
     authentication_token = authenticate_user(credentials)
