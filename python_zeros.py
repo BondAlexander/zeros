@@ -51,7 +51,6 @@ def main():
         devices_list = f.read().splitlines()
     start = datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
     print('Begin operation - ' + start)
-    to_doc_w(file_name, "")
     num_failed = 0
     for devices in devices_list:
         for attempt in [1,2]:
@@ -75,7 +74,7 @@ def main():
                 break
             except (NetMikoTimeoutException):
                 if attempt == 1:
-                    logging.error(f'-------------------Timeout to device: {ip_address_of_device}\nRetrying...')
+                    print(f'-------------------Timeout to device: {ip_address_of_device}\nRetrying...')
                     continue
                 else:
                     logging.error(f'-------------------Timeout to device: {ip_address_of_device}\nSkipping...')
