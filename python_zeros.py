@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-
 #v1 Initial base code that handles errors through netmiko.
 #v2 Writing output to a file.
 #v3 integrating username and pw into code
@@ -41,7 +40,7 @@ def main():
     if not os.path.exists('logs/'):
         os.mkdir('logs/')
     fname = f'logs/{file_name}.log'
-    logging.basicConfig(filename=fname, level=logging.INFO)
+    logging.basicConfig(filename=fname)
     credentials = {}
     with open('auth.json', 'r') as fd:
         credentials = json.loads(fd.read())
@@ -69,27 +68,27 @@ def main():
                 else:
                     net_connect = ConnectHandler(timeout=10, **hp_devices)
             except (AuthenticationException):
-                logging.warning('********************Authentication failure: ' + ip_address_of_device)
+                logging.error('********************Authentication failure: ' + ip_address_of_device)
                 num_failed += 1
                 break
             except (NetMikoTimeoutException):
                 if attempt == 1:
-                    logging.warning(f'-------------------Timeout to device: {ip_address_of_device}\nRetrying...')
+                    logging.error(f'-------------------Timeout to device: {ip_address_of_device}\nRetrying...')
                     continue
                 else:
-                    logging.warning(f'-------------------Timeout to device: {ip_address_of_device}\nSkipping...')
+                    logging.error(f'-------------------Timeout to device: {ip_address_of_device}\nSkipping...')
                     num_failed += 1
                     break
             except (EOFError):
-                logging.warning("End of file while attempting device " + ip_address_of_device)
+                logging.error("End of file while attempting device " + ip_address_of_device)
                 num_failed += 1
                 break
             except (SSHException):
-                logging.warning('SSH Issue. Are you sure SSH is enabled? ' + ip_address_of_device)
+                logging.error('SSH Issue. Are you sure SSH is enabled? ' + ip_address_of_device)
                 num_failed += 1
                 break
             except Exception as unknown_error:
-                logging.warning('Some other error: ' + str(unknown_error))
+                logging.error('Some other error: ' + str(unknown_error))
                 num_failed += 1
                 break
             try:
