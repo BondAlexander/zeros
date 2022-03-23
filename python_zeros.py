@@ -37,7 +37,8 @@ def to_doc_w(file_name, varable):
     f.close()
 
 
-def querry_switches(device, credentials, file_name):
+def querry_switch(device, credentials, file_name):
+    new_switch = None
     num_failed = 0
     for attempt in [1,2]:
         print('Connecting to device ' + device)
@@ -98,21 +99,27 @@ def querry_switches(device, credentials, file_name):
         to_doc_a(f'output/{file_name}', linebreak)
         to_doc_a(f'output/{file_name}', finish)
         break
-    return num_failed
+    return num_failed, new_switch
+
+
+def verify_file_structure():
+    if not os.path.exists('logs/'):
+        os.mkdir('logs/')
+    if not os.path.exists('output/'):
+        os.mkdir('output/')
+
+
+def setup_logging(file_name):
+    logging.basicConfig(filename=file_name)
+    logging.getLogger('paramiko.transport').setLevel(logging.CRITICAL)
 
 
 def main():
+    file_name = datetime.datetime.now().strftime("%Y%m%d-%H%M")
+    verify_file_structure()
+    setup_logging(f'logs/{file_name}.log')
     data_base = Database()
     data_base.load()
-    file_name = datetime.datetime.now().strftime("%Y%m%d-%H%M")
-    if not os.path.exists('logs/'):
-        os.mkdir('logs/')
-    fname = f'logs/{file_name}.log'
-    if not os.path.exists('output/'):
-        os.mkdir('output/')
-    logging.basicConfig(filename=fname)
-    logging.getLogger('paramiko.transport').setLevel(logging.CRITICAL)
-    credentials = {}
     with open('auth.json', 'r') as fd:
         credentials = json.loads(fd.read())
     num_changes = querryimc.querry_imc(credentials)
@@ -122,9 +129,12 @@ def main():
     print('Begin operation - ' + start)
     num_failed = 0
     with concurrent.futures.ThreadPoolExecutor(max_workers=16) as executor:
-        results = executor.map(querry_switches, devices_list, repeat(credentials), repeat(file_name))
-        for r in results:
-            num_failed += r
+        results = executor.map(querry_switch, devices_list, repeat(credentials), repeat(file_name))
+        for failed, switch in results:
+            if failed == 0:
+                data_base.update_switch_info(switch)
+            else:
+                num_failed += failed
     finish = datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
     print('Operation Complete - ' + finish)
     email_handler = EmailHandler()
