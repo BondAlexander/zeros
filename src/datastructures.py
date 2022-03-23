@@ -33,7 +33,9 @@ class Database:
 
         if switch_to_update:
             for port in switch_to_merge.port_list.keys():
-                switch_to_update.port_list[port].append(switch_to_merge.port_list[port])
+                if not switch_to_update.port_list.get(port):
+                    switch_to_update.port_list[port] = []
+                switch_to_update.port_list[port].append(switch_to_merge.port_list[port][0])
         else:
             self.switch_list.append(switch_to_merge)
 
@@ -44,7 +46,7 @@ class Switch:
 
     def read_output(self, text):
         data_start = False
-        for index, line in enumerate(text.split('\n')):
+        for line in text.split('\n'):
             columns = [i.replace(',', '') for i in line.split(' ') if i != '']
             if re.fullmatch(r'^-+$',''.join(columns)):
                 data_start = True

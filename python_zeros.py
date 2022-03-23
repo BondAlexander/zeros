@@ -37,12 +37,11 @@ def to_doc_w(file_name, varable):
     f.close()
 
 
-def querry_switch(device, credentials, file_name):
-    new_switch = None
+def querry_switch(ip_address_of_device, credentials, file_name):
+    new_switch = Switch(ip_address_of_device)
     num_failed = 0
     for attempt in [1,2]:
-        print('Connecting to device ' + device)
-        ip_address_of_device = device
+        print('Connecting to device ' + ip_address_of_device)
         hp_devices = {
             'device_type': 'hp_procurve',
             'ip': ip_address_of_device, 
@@ -91,9 +90,10 @@ def querry_switch(device, credentials, file_name):
         print('Operation Complete - ' + finish)
         print('\n' * 1)
         #Append the output to the results file
-        new_switch = Switch(ip_address_of_device)
+        
         new_switch.read_output(intoutput)
-        to_doc_a(f'output/{file_name}', device)
+
+        to_doc_a(f'output/{file_name}', ip_address_of_device)
         to_doc_a(f'output/{file_name}', sysoutput)
         to_doc_a(f'output/{file_name}', intoutput)
         to_doc_a(f'output/{file_name}', linebreak)
@@ -131,10 +131,8 @@ def main():
     with concurrent.futures.ThreadPoolExecutor(max_workers=16) as executor:
         results = executor.map(querry_switch, devices_list, repeat(credentials), repeat(file_name))
         for failed, switch in results:
-            if failed == 0:
-                data_base.update_switch_info(switch)
-            else:
-                num_failed += failed
+            data_base.update_switch_info(switch)
+            num_failed += failed
     finish = datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
     print('Operation Complete - ' + finish)
     email_handler = EmailHandler()
