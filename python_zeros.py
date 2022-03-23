@@ -15,6 +15,7 @@ import json
 import concurrent.futures
 from itertools import repeat
 import os
+from src.datastructures import Database, Switch
 import src.querryimc as querryimc
 from src.emailhandler import EmailHandler
 from netmiko import ConnectHandler
@@ -38,7 +39,6 @@ def to_doc_w(file_name, varable):
 
 def querry_switches(device, credentials, file_name):
     num_failed = 0
-
     for attempt in [1,2]:
         print('Connecting to device ' + device)
         ip_address_of_device = device
@@ -90,6 +90,8 @@ def querry_switches(device, credentials, file_name):
         print('Operation Complete - ' + finish)
         print('\n' * 1)
         #Append the output to the results file
+        new_switch = Switch(ip_address_of_device)
+        new_switch.read_output(intoutput)
         to_doc_a(f'output/{file_name}', device)
         to_doc_a(f'output/{file_name}', sysoutput)
         to_doc_a(f'output/{file_name}', intoutput)
@@ -100,6 +102,8 @@ def querry_switches(device, credentials, file_name):
 
 
 def main():
+    data_base = Database()
+    data_base.load()
     file_name = datetime.datetime.now().strftime("%Y%m%d-%H%M")
     if not os.path.exists('logs/'):
         os.mkdir('logs/')
@@ -117,7 +121,7 @@ def main():
     start = datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
     print('Begin operation - ' + start)
     num_failed = 0
-    with concurrent.futures.ThreadPoolExecutor(max_workers=16) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
         results = executor.map(querry_switches, devices_list, repeat(credentials), repeat(file_name))
         for r in results:
             num_failed += r
@@ -126,7 +130,7 @@ def main():
     email_handler = EmailHandler()
     email_handler.update_email_body(num_changes, num_failed, len(devices_list))
     email_handler.send_update_email(file_name)
-
+    data_base.save()
 
 if __name__ == '__main__':
     main()
