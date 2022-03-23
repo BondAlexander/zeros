@@ -13,9 +13,9 @@ class EmailHandler:
         self.body = """
 Hello,
    This is an automated update to inform you of the current activity on \
-switch ports. Today's scan found <INSERT NUMBER OF CHANGES> IP address(es) \
+the switch ports. Today's scan found <INSERT NUMBER OF CHANGES> IP address(es) \
 that have changed since last scan. Today's scan failed to connect to <NUMBER OF FAILED \
-CONNECTIONS> IP(s) out of <INSERT NUMBER OF DEVICES> device. View the attatched log file for details. The second \
+CONNECTIONS> IP(s) out of <INSERT NUMBER OF DEVICES> device. View the attatched log file for details. The first \
 attatched file has the output from all switches that were successfully \
 querried.
 
