@@ -13,9 +13,9 @@ class EmailHandler:
         self.body = """
 Hello,
    This is an automated update to inform you of the current activity on \
-switch ports. Today's scan found <INSERT NUMBER OF CHANGES> IP address(es) \
+the switch ports. Today's scan found <INSERT NUMBER OF CHANGES> IP address(es) \
 that have changed since last scan. Today's scan failed to connect to <NUMBER OF FAILED \
-CONNECTIONS> IP(s) out of <INSERT NUMBER OF DEVICES> device. View the attatched log file for details. The second \
+CONNECTIONS> IP(s) out of <INSERT NUMBER OF DEVICES> device. View the attatched log file for details. The first \
 attatched file has the output from all switches that were successfully \
 querried.
 
@@ -43,7 +43,7 @@ querried.
         self.msg['From'] = self.username
         self.msg['To'] = self.recipient
         self.msg.set_content(self.body)
-        for file in [f'{fname}', f'logs/{fname}.log']:
+        for file in [f'output/{fname}', f'logs/{fname}.log']:
             with open(file, 'rb') as fd:
                 file_data = fd.read()
             self.msg.add_attachment(file_data, maintype='application', subtype='octet-stream', filename=file.replace('logs/', ''))
