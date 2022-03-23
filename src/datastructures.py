@@ -36,7 +36,6 @@ class Switch:
                 continue
             if data_start and len(columns) > 2:
                 self.add_port(columns)
-        data_start = False
         pprint(self.port_list)
 
     def add_port(self, port_info):

@@ -121,7 +121,7 @@ def main():
     start = datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
     print('Begin operation - ' + start)
     num_failed = 0
-    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=16) as executor:
         results = executor.map(querry_switches, devices_list, repeat(credentials), repeat(file_name))
         for r in results:
             num_failed += r
