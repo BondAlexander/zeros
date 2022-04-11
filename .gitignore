@@ -6,3 +6,9 @@ completed_devices_file (ORIGINAL)
 auth.json
 qna.txt
 sandbox.py
+*.log
+report.txt
+*.pickle
+*.pyc
+2022*
+*.json
