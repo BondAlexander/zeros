@@ -115,6 +115,7 @@ def setup_logging(file_name):
 
 
 def main():
+    os.chdir('/home/alexancb/zeros')
     file_name = datetime.datetime.now().strftime("%Y%m%d-%H%M")
     verify_file_structure()
     setup_logging(f'logs/{file_name}.log')
@@ -136,9 +137,10 @@ def main():
     finish = datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
     print('Operation Complete - ' + finish)
     email_handler = EmailHandler()
+    data_base.save()
+    data_base.report_innactivity()
     email_handler.update_email_body(num_changes, num_failed, len(devices_list))
     email_handler.send_update_email(file_name)
-    data_base.save()
 
 if __name__ == '__main__':
     main()
