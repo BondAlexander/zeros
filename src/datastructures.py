@@ -4,6 +4,8 @@ import re
 from pprint import pprint
 from concurrent.futures import ThreadPoolExecutor
 from itertools import repeat
+import time
+import datetime
 
 
 
@@ -97,10 +99,14 @@ class Switch:
             if data_start and len(columns) > 2:
                 self.add_data_to_port(columns)
 
-    def add_data_to_port(self, port_info):
+    def add_data_to_port(self, port_info, epoch_days=time.time() // 86400):
         port_number = port_info[0]
         port_activity = port_info[1]
         if self.port_list.get(port_number):
+            port_entry = {
+                "activity": port_number,
+                "date": epoch_days # days since Jan 1st 1970
+            }
             self.port_list[port_number].append(port_activity)
         else:
             self.port_list[port_number] = [port_activity]
