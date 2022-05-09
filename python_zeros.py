@@ -37,7 +37,7 @@ def to_doc_w(file_name, varable):
     f.close()
 
 
-def querry_switch(ip_address_of_device, credentials, file_name):
+def querry_switch(ip_address_of_device, credentials, file_name, database):
     new_switch = Switch(ip_address_of_device)
     num_failed = 0
     for attempt in [1,2]:
@@ -91,7 +91,7 @@ def querry_switch(ip_address_of_device, credentials, file_name):
         print('\n' * 1)
         #Append the output to the results file
         
-        new_switch.read_output(intoutput)
+        new_switch.read_output(intoutput, database)
 
         to_doc_a(f'output/{file_name}', ip_address_of_device)
         to_doc_a(f'output/{file_name}', sysoutput)
@@ -121,6 +121,7 @@ def main():
     setup_logging(f'logs/{file_name}.log')
     data_base = Database()
     data_base.load()
+    data_base.days_recorded += 1
     with open('auth.json', 'r') as fd:
         credentials = json.loads(fd.read())
     num_changes = querryimc.querry_imc(credentials)
@@ -130,7 +131,7 @@ def main():
     print('Begin operation - ' + start)
     num_failed = 0
     with concurrent.futures.ThreadPoolExecutor(max_workers=16) as executor:
-        results = executor.map(querry_switch, devices_list, repeat(credentials), repeat(file_name))
+        results = executor.map(querry_switch, devices_list, repeat(credentials), repeat(file_name), repeat(data_base))
         for failed, switch in results:
             data_base.update_switch_info(switch)
             num_failed += failed

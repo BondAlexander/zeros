@@ -13,19 +13,23 @@ class Database:
     def __init__(self) -> None:
         self.switch_list = []
         self.file_path = "database.pickle"
+        self.days_recorded = 0
 
     def save(self):
         with open(self.file_path, "wb") as fd:
-            pickle.dump(self.switch_list, fd)
+            pickle.dump(self, fd)
 
     def load(self):
         if os.path.exists(self.file_path):
             with open(self.file_path, "rb") as fd:
-                self.switch_list = pickle.load(fd)
+                temp_db = pickle.load(fd)
+                self.switch_list, self.days_recorded = temp_db.switch_list, temp_db.days_recorded
         else:
             with open('completed_devices_file', 'r') as fd:
                 switch_ips = [ip for ip in fd.read().split('\n') if ip != '']
             self.switch_list = [Switch(switch) for switch in switch_ips]
+            pass
+
     def load_from_folder_helper(self, report):
                 switch = Switch("PLACEHOLDER")
                 lines = [l for l in report.split('\n')]
@@ -35,8 +39,8 @@ class Database:
                         continue
                     elif re.fullmatch(r'(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[1-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])', columns[0]):
                         switch = Switch(columns[0])
-                switch.read_output(report)
-
+                entree_date = None
+                switch.read_output(report, self)
                 return switch
 
     def load_from_folder(self, path):
@@ -83,13 +87,12 @@ class Database:
             fd.write(report)
                 
 
-
 class Switch:
     def __init__(self, ip: str):
         self.switch_ip = ip
         self.port_list = {}
 
-    def read_output(self, text):
+    def read_output(self, text, database, epoch_days=time.time() // 86400):
         data_start = False
         for line in text.split('\n'):
             columns = [i.replace(',', '') for i in line.split(' ') if i != '']
@@ -97,16 +100,21 @@ class Switch:
                 data_start = True
                 continue
             if data_start and len(columns) > 2:
-                self.add_data_to_port(columns)
-
-    def add_data_to_port(self, port_info, epoch_days=time.time() // 86400):
+                self.add_data_to_port(columns, epoch_days=epoch_days)
+        for port in self.port_list.values():
+            if len(port) != database.days_recorded:
+                for _ in range(database.days_recorded - len(port)):
+                    port.append(0)
+        
+    def add_data_to_port(self, port_info, epoch_days):
         port_number = port_info[0]
         port_activity = port_info[1]
+        port_entry = None
         if self.port_list.get(port_number):
             port_entry = {
-                "activity": port_number,
+                "activity": port_activity,
                 "date": epoch_days # days since Jan 1st 1970
             }
-            self.port_list[port_number].append(port_activity)
+            self.port_list[port_number].append(port_entry)
         else:
-            self.port_list[port_number] = [port_activity]
+            self.port_list[port_number] = [port_entry]
