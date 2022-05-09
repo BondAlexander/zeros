@@ -30,7 +30,7 @@ class Database:
             self.switch_list = [Switch(switch) for switch in switch_ips]
             pass
 
-    def load_from_folder_helper(self, report):
+    def load_from_folder_helper(self, report, file_name):
                 switch = Switch("PLACEHOLDER")
                 lines = [l for l in report.split('\n')]
                 for line in lines:
@@ -39,16 +39,18 @@ class Database:
                         continue
                     elif re.fullmatch(r'(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[1-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])', columns[0]):
                         switch = Switch(columns[0])
-                entree_date = None
-                switch.read_output(report, self)
+                entree_date = int(datetime.datetime(int(file_name[:4]), int(file_name[4:6]), int(file_name[6:8])).strftime('%s')) // 86400
+                switch.read_output(report, self, entree_date)
                 return switch
 
     def load_from_folder(self, path):
+        report_names = []
         for file in os.listdir(path):
             with open(f'{path}/{file}', 'r') as fd:
                 switch_reports = [report for report in fd.read().split('*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-')]
+                report_names.append(file)
                 with ThreadPoolExecutor(max_workers=16) as executor:
-                    output = executor.map(self.load_from_folder_helper, switch_reports)
+                    output = executor.map(self.load_from_folder_helper, switch_reports, report_names)
                     for switch in output:
                         self.update_switch_info(switch)
 
@@ -109,12 +111,11 @@ class Switch:
     def add_data_to_port(self, port_info, epoch_days):
         port_number = port_info[0]
         port_activity = port_info[1]
-        port_entry = None
-        if self.port_list.get(port_number):
-            port_entry = {
+        port_entry = {
                 "activity": port_activity,
                 "date": epoch_days # days since Jan 1st 1970
             }
+        if self.port_list.get(port_number):
             self.port_list[port_number].append(port_entry)
         else:
             self.port_list[port_number] = [port_entry]
