@@ -74,9 +74,9 @@ class Database:
                 for index, traffic in enumerate(reversed(port_traffic)):
                     if index == 0:
                         continue
-                    elif traffic == port_traffic[-index]:
+                    elif traffic['activity'] == port_traffic[-index]['activity']:
                         days_innactive += 1
-                    elif traffic > port_traffic[-index-1]:
+                    elif traffic['activity'] > port_traffic[-index-1]['activity']:
                         break
                 if days_innactive >= 90:
                     report += (f'{switch.switch_ip}:{port_num} inactive {days_innactive} days\n')
