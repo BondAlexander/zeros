@@ -28,31 +28,30 @@ class Database:
             with open('completed_devices_file', 'r') as fd:
                 switch_ips = [ip for ip in fd.read().split('\n') if ip != '']
             self.switch_list = [Switch(switch) for switch in switch_ips]
-            pass
 
     def load_from_folder_helper(self, report, file_name):
-                switch = Switch("PLACEHOLDER")
-                lines = [l for l in report.split('\n')]
-                for line in lines:
-                    columns = [i.replace(',', '') for i in line.split(' ') if i != '']
-                    if len(columns) == 0:
-                        continue
-                    elif re.fullmatch(r'(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[1-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])', columns[0]):
-                        switch = Switch(columns[0])
-                entree_date = int(datetime.datetime(int(file_name[:4]), int(file_name[4:6]), int(file_name[6:8])).strftime('%s')) // 86400
-                switch.read_output(report, self, entree_date)
-                return switch
+        switch = Switch("PLACEHOLDER")
+        lines = [l for l in report.split('\n')]
+        for line in lines:
+            columns = [i.replace(',', '') for i in line.split(' ') if i != '']
+            if len(columns) == 0:
+                continue
+            elif re.fullmatch(r'(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[1-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])', columns[0]):
+                switch = Switch(columns[0])
+        entree_date = int(datetime.datetime(int(file_name[:4]), int(file_name[4:6]), int(file_name[6:8])).strftime('%s')) // 86400
+        switch.read_output(report, self, entree_date)
+        return switch
 
     def load_from_folder(self, path):
-        report_names = []
         for file in os.listdir(path):
             with open(f'{path}/{file}', 'r') as fd:
                 switch_reports = [report for report in fd.read().split('*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-')]
-                report_names.append(file)
                 with ThreadPoolExecutor(max_workers=16) as executor:
-                    output = executor.map(self.load_from_folder_helper, switch_reports, report_names)
+                    output = executor.map(self.load_from_folder_helper, switch_reports, repeat(file))
                     for switch in output:
                         self.update_switch_info(switch)
+                # for report in switch_reports:
+                #     self.update_switch_info(self.load_from_folder_helper(report, file))
 
     def get_switch_by_ip(self, ip: str):
         for switch in self.switch_list:
@@ -61,7 +60,6 @@ class Database:
     
     def update_switch_info(self, switch_to_merge):
         switch_to_update = self.get_switch_by_ip(switch_to_merge.switch_ip)
-
         if switch_to_update:
             for port in switch_to_merge.port_list.keys():
                 if not switch_to_update.port_list.get(port):
