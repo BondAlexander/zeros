@@ -29,7 +29,7 @@ class Database:
                 switch_ips = [ip for ip in fd.read().split('\n') if ip != '']
             self.switch_list = [Switch(switch) for switch in switch_ips]
 
-    def load_from_folder_helper(self, report, file_name):
+    def _load_from_folder_helper(self, report, file_name):
         switch = Switch("PLACEHOLDER")
         lines = [l for l in report.split('\n')]
         for line in lines:
@@ -43,15 +43,13 @@ class Database:
         return switch
 
     def load_from_folder(self, path):
-        for file in os.listdir(path):
+        for file in sorted(os.listdir(path)):
             with open(f'{path}/{file}', 'r') as fd:
                 switch_reports = [report for report in fd.read().split('*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-')]
                 with ThreadPoolExecutor(max_workers=16) as executor:
-                    output = executor.map(self.load_from_folder_helper, switch_reports, repeat(file))
+                    output = executor.map(self._load_from_folder_helper, switch_reports, repeat(file))
                     for switch in output:
                         self.update_switch_info(switch)
-                # for report in switch_reports:
-                #     self.update_switch_info(self.load_from_folder_helper(report, file))
 
     def get_switch_by_ip(self, ip: str):
         for switch in self.switch_list:
