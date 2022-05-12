@@ -44,6 +44,7 @@ class Database:
 
     def load_from_folder(self, path):
         for file in sorted(os.listdir(path)):
+            self.days_recorded += 1
             with open(f'{path}/{file}', 'r') as fd:
                 switch_reports = [report for report in fd.read().split('*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-')]
                 with ThreadPoolExecutor(max_workers=16) as executor:
