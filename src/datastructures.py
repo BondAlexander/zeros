@@ -113,5 +113,7 @@ class Switch:
             }
         if self.port_list.get(port_number):
             self.port_list[port_number].append(port_entry)
+            if len(self.port_list[port_number]) > 120:
+                self.port_list[port_number].pop(0)
         else:
             self.port_list[port_number] = [port_entry]
