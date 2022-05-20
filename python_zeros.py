@@ -121,7 +121,6 @@ def main():
     setup_logging(f'logs/{file_name}.log')
     data_base = Database()
     data_base.load()
-    data_base.days_recorded += 1
     with open('auth.json', 'r') as fd:
         credentials = json.loads(fd.read())
     num_changes = querryimc.querry_imc(credentials)
