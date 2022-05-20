@@ -44,6 +44,8 @@ class Database:
 
     def load_from_folder(self, path):
         for file in sorted(os.listdir(path)):
+            if self.days_recorded != 120:
+                self.days_recorded += 1
             with open(f'{path}/{file}', 'r') as fd:
                 switch_reports = [report for report in fd.read().split('*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-')]
                 with ThreadPoolExecutor(max_workers=16) as executor:
@@ -63,6 +65,8 @@ class Database:
                 if not switch_to_update.port_list.get(port):
                     switch_to_update.port_list[port] = []
                 switch_to_update.port_list[port].append(switch_to_merge.port_list[port][0])
+                if len(switch_to_update.port_list.get(port)) > 120:
+                    switch_to_update.port_list.get(port).pop(0) 
         else:
             self.switch_list.append(switch_to_merge)
 
@@ -102,7 +106,7 @@ class Switch:
         for port in self.port_list.values():
             if len(port) != database.days_recorded:
                 for _ in range(database.days_recorded - len(port)):
-                    port.append(0)
+                    port.append({'activity': '0', 'date': epoch_days})
         
     def add_data_to_port(self, port_info, epoch_days):
         port_number = port_info[0]
