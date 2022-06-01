@@ -15,6 +15,7 @@ import json
 import concurrent.futures
 from itertools import repeat
 import os
+import argparse
 from src.datastructures import Database, Switch
 import src.querryimc as querryimc
 from src.emailhandler import EmailHandler
@@ -114,7 +115,21 @@ def setup_logging(file_name):
     logging.getLogger('paramiko.transport').setLevel(logging.CRITICAL)
 
 
+def handle_arguments():
+    parser = argparse.ArgumentParser(description='Arguments for Zeros Program')
+    parser.add_argument("-l", "--load-folder", help="Load database from folder of raw output files")
+    return parser.parse_args()
+
+
 def main():
+    args = handle_arguments()
+    if args.load_folder:
+        print(f'\nLoading from \'{args.load_folder}\' and creating local database \'database.pickle\'...')
+        db = Database()
+        db.load_from_folder(args.load_folder)
+        db.save()
+        print('Done.')
+        exit(0)
     os.chdir('/home/alexancb/zeros')
     file_name = datetime.datetime.now().strftime("%Y%m%d-%H%M")
     verify_file_structure()
