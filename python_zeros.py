@@ -121,16 +121,15 @@ def handle_arguments():
     return parser.parse_args()
 
 
-def load_from_folder(path):
-    db = Database()
-    db.load_from_folder('/home/alexancb/historic-data')
-    db.save()   
-
-
 def main():
     args = handle_arguments()
     if args.load_folder:
-        load_from_folder(args.load_folder)
+        print(f'\nLoading from \'{args.load_folder}\' and creating local database \'database.pickle\'...')
+        db = Database()
+        db.load_from_folder(args.load_folder)
+        db.save()
+        print('Done.')
+        exit(0)
     os.chdir('/home/alexancb/zeros')
     file_name = datetime.datetime.now().strftime("%Y%m%d-%H%M")
     verify_file_structure()
