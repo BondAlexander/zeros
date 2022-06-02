@@ -1,0 +1,15 @@
+{
+    "IMC": {
+        "username": "",
+        "password": ""
+    },
+    "SSH": {
+        "username": "",
+        "password": ""
+    },
+    "Email": {
+        "username": "",
+        "server": "",
+        "port": 0,
+        "recipient": ""
+}
