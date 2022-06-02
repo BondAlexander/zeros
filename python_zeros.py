@@ -136,16 +136,14 @@ def main():
     num_changes = querryimc.querry_imc(credentials)
     with open('completed_devices_file') as f:
         devices_list = f.read().splitlines()
-    start = datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
-    print('Begin operation - ' + start)
+    print('Begin operation - ')
     num_failed = 0
     with concurrent.futures.ThreadPoolExecutor(max_workers=16) as executor:
         results = executor.map(querry_switch, devices_list, repeat(credentials), repeat(file_name), repeat(data_base))
         for failed, switch in results:
             data_base.update_switch_info(switch)
             num_failed += failed
-    finish = datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
-    print('Operation Complete - ' + finish)
+    print('Operation Complete - ')
     email_handler = EmailHandler()
     data_base.save()
     data_base.report_innactivity()
