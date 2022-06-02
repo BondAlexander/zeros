@@ -3,7 +3,7 @@
         "username": "",
         "password": "",
         "server": ""
-        "server": 0
+        "port": 0
     },
     "SSH": {
         "username": "",
