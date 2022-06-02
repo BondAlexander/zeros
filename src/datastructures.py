@@ -70,7 +70,7 @@ class Database:
         else:
             self.switch_list.append(switch_to_merge)
 
-    def report_innactivity(self):
+    def generate_innactivity_report(self):
         report = ""
         for switch in self.switch_list:
             for port_num, port_traffic in switch.port_list.items():

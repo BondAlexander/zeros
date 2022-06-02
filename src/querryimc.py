@@ -11,11 +11,11 @@ This code was forked 2/28/2022
 '''
 
 
-def authenticate_user(credentials, tries=2):
-    uname = credentials['IMC']['username']
-    passwd= credentials['IMC']['password']
-    ip = "10.100.201.199"
-    port = "8080"
+def authenticate_user(config):
+    uname = config['IMC']['username']
+    passwd= config['IMC']['password']
+    ip = config["IMC"]["server"]
+    port = config["IMC"]["port"]
     auth = IMCAuth("http://", str(ip), str(port), uname, passwd)
     if '200' not in str(auth.get_auth()):
         print('Incorrect credentials for IMC server. Exiting...')

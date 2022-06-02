@@ -146,7 +146,7 @@ def main():
     print('Operation Complete - ')
     email_handler = EmailHandler()
     data_base.save()
-    data_base.report_innactivity()
+    data_base.generate_innactivity_report()
     email_handler.update_email_body(num_changes, num_failed, len(devices_list))
     email_handler.send_update_email(file_name)
 
