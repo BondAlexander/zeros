@@ -25,7 +25,7 @@ querried.
         self._load_config()
 
     def _load_config(self):
-        with open('auth.json', 'r') as fd:
+        with open('config.json', 'r') as fd:
             config = json.load(fd).get('Email')
             self.username = config.get('username')
             self.password = config.get('password')

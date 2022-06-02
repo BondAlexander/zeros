@@ -32,12 +32,6 @@ def to_doc_a(file_name, varable):
     f.close()
 
 
-def to_doc_w(file_name, varable):
-    f=open(file_name, 'w')
-    f.write(varable)
-    f.close()
-
-
 def querry_switch(ip_address_of_device, credentials, file_name, database):
     new_switch = Switch(ip_address_of_device)
     num_failed = 0
@@ -118,11 +112,7 @@ def setup_logging(file_name):
 def handle_arguments():
     parser = argparse.ArgumentParser(description='Arguments for Zeros Program')
     parser.add_argument("-l", "--load-folder", help="Load database from folder of raw output files")
-    return parser.parse_args()
-
-
-def main():
-    args = handle_arguments()
+    args = parser.parse_args()
     if args.load_folder:
         print(f'\nLoading from \'{args.load_folder}\' and creating local database \'database.pickle\'...')
         db = Database()
@@ -130,13 +120,18 @@ def main():
         db.save()
         print('Done.')
         exit(0)
+    return args
+
+
+def main():
+    args = handle_arguments()
     os.chdir('/home/alexancb/zeros')
     file_name = datetime.datetime.now().strftime("%Y%m%d-%H%M")
     verify_file_structure()
     setup_logging(f'logs/{file_name}.log')
     data_base = Database()
     data_base.load()
-    with open('auth.json', 'r') as fd:
+    with open('config.json', 'r') as fd:
         credentials = json.loads(fd.read())
     num_changes = querryimc.querry_imc(credentials)
     with open('completed_devices_file') as f:
