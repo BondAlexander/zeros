@@ -112,6 +112,7 @@ def setup_logging(file_name):
 def handle_arguments():
     parser = argparse.ArgumentParser(description='Arguments for Zeros Program')
     parser.add_argument("-l", "--load-folder", help="Load database from folder of raw output files")
+    parser.add_argument("-d", "--project-directory", help="Specify path to project directory (useful for crontab)")
     args = parser.parse_args()
     if args.load_folder:
         print(f'\nLoading from \'{args.load_folder}\' and creating local database \'database.pickle\'...')
@@ -120,12 +121,13 @@ def handle_arguments():
         db.save()
         print('Done.')
         exit(0)
+    if args.project_directory:
+        os.chdir(args.project_directory)
     return args
 
 
 def main():
-    args = handle_arguments()
-    os.chdir('/home/alexancb/zeros')
+    handle_arguments()
     file_name = datetime.datetime.now().strftime("%Y%m%d-%H%M")
     verify_file_structure()
     setup_logging(f'logs/{file_name}.log')
