@@ -2,7 +2,6 @@
 from src.datastructures import Switch, Database
 import logging
 import datetime
-from python_zeros import querry_switch
 from netmiko import ConnectHandler
 from netmiko.ssh_exception import NetMikoTimeoutException
 from paramiko.ssh_exception import SSHException
@@ -25,7 +24,7 @@ class SwitchQuerrier:
         self.hp_devices['ip'] = new_ip
 
     def querry_switch(self, switch_ip):
-        self.update_ip(switch_ip)
+        self._update_ip(switch_ip)
         new_switch = Switch(switch_ip)
         num_failed = 0
         for attempt in [1, 2]:
@@ -75,8 +74,8 @@ class SwitchQuerrier:
         return num_failed, new_switch
 
     @staticmethod
-    def raw_output_writer(file_name, **values):
+    def raw_output_writer(file_name, *args):
         with open(file_name, 'a') as f:
-            for v in values:
+            for v in args:
                 f.write(v)
                 f.write('\n')
