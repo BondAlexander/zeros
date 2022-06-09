@@ -73,8 +73,38 @@ class SwitchQuerrier:
         return num_failed, new_switch
 
     @staticmethod
+    def update_list(new_switch_list):
+        num_changes = 0
+        new_switch_ips = SwitchQuerrier.parse_switch_list(new_switch_list)
+        with open('completed_devices_file', 'r') as fd:
+            old_switch_ips = fd.read().split('\n')
+        SwitchQuerrier.log_switch_updates(old_switch_ips, new_switch_ips)
+        with open('completed_devices_file', 'w') as fd:
+            fd.write('\n'.join(new_switch_ips))
+        return num_changes
+
+    @staticmethod
+    def parse_switch_list(dict):
+        switch_list = []
+        for item in dict:
+            if item.get('devCategoryImgSrc') == 'switch':
+                switch_list.append(item['ip'])
+        return switch_list
+
+    @staticmethod
+    def log_switch_updates(old_switch_ips, new_switch_ips):
+        for ip in old_switch_ips:
+            if ip not in new_switch_ips:
+                logging.warning(f'Removing {ip} from list of switches')
+                num_changes += 1
+        for ip in new_switch_ips:
+            if ip not in old_switch_ips:
+                logging.warning(f'Adding {ip} to list of switches')
+                num_changes += 1
+
+    @staticmethod
     def raw_output_writer(file_name, *args):
         with open(file_name, 'a') as f:
             for v in args:
                 f.write(v)
-                f.write('\n')
+                f.write('\n')    
