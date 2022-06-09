@@ -24,7 +24,7 @@ def authenticate_user(config):
     return auth
 
 
-def formatDict(dict):
+def parse_switch_list(dict):
     switch_list = []
     for item in dict:
         if item.get('devCategoryImgSrc') == 'switch':
@@ -34,7 +34,7 @@ def formatDict(dict):
 
 def update_list(new_switch_list):
     num_changes = 0
-    new_switch_ips = formatDict(new_switch_list)
+    new_switch_ips = parse_switch_list(new_switch_list)
     with open('completed_devices_file', 'r') as fd:
         old_switch_ips = fd.read().split('\n')
     for ip in old_switch_ips:
