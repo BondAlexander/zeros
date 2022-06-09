@@ -25,11 +25,11 @@ from paramiko.ssh_exception import SSHException
 from netmiko.ssh_exception import AuthenticationException
 
 
-def to_doc_a(file_name, varable):
-    f=open(file_name, 'a')
-    f.write(varable)
-    f.write('\n')
-    f.close()
+def raw_output_writer(file_name, **values):
+    with open(file_name, 'a') as f:
+        for v in values:
+            f.write(v)
+            f.write('\n')
 
 
 def querry_switch(ip_address_of_device, credentials, file_name, database):
@@ -39,7 +39,7 @@ def querry_switch(ip_address_of_device, credentials, file_name, database):
         print('Connecting to device ' + ip_address_of_device)
         hp_devices = {
             'device_type': 'hp_procurve',
-            'ip': ip_address_of_device, 
+            'ip': ip_address_of_device,
             'username': credentials['SSH']['username'],
             'password': credentials['SSH']['password'],
             'global_delay_factor': .25
@@ -83,16 +83,9 @@ def querry_switch(ip_address_of_device, credentials, file_name, database):
         finish = datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
         net_connect.disconnect()
         print('Operation Complete - ' + finish)
-        print('\n' * 1)
-        #Append the output to the results file
-        
+        print('\n')
         new_switch.read_output(intoutput, database)
-
-        to_doc_a(f'output/{file_name}', ip_address_of_device)
-        to_doc_a(f'output/{file_name}', sysoutput)
-        to_doc_a(f'output/{file_name}', intoutput)
-        to_doc_a(f'output/{file_name}', linebreak)
-        to_doc_a(f'output/{file_name}', finish)
+        raw_output_writer(f'output/{file_name}', ip_address_of_device, sysoutput, intoutput, linebreak, finish)
         break
     return num_failed, new_switch
 
@@ -112,6 +105,7 @@ def setup_logging(file_name):
 def handle_arguments():
     parser = argparse.ArgumentParser(description='Arguments for Zeros Program')
     parser.add_argument("-l", "--load-folder", help="Load database from folder of raw output files")
+    parser.add_argument("-d", "--project-directory", help="Specify path to project directory (useful for crontab)")
     args = parser.parse_args()
     if args.load_folder:
         print(f'\nLoading from \'{args.load_folder}\' and creating local database \'database.pickle\'...')
@@ -120,12 +114,13 @@ def handle_arguments():
         db.save()
         print('Done.')
         exit(0)
+    if args.project_directory:
+        os.chdir(args.project_directory)
     return args
 
 
 def main():
-    args = handle_arguments()
-    os.chdir('/home/alexancb/zeros')
+    handle_arguments()
     file_name = datetime.datetime.now().strftime("%Y%m%d-%H%M")
     verify_file_structure()
     setup_logging(f'logs/{file_name}.log')
