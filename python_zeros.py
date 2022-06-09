@@ -84,10 +84,7 @@ def querry_switch(ip_address_of_device, credentials, file_name, database):
         net_connect.disconnect()
         print('Operation Complete - ' + finish)
         print('\n')
-        #Append the output to the results file
-
         new_switch.read_output(intoutput, database)
-
         raw_output_writer(f'output/{file_name}', ip_address_of_device, sysoutput, intoutput, linebreak, finish)
         break
     return num_failed, new_switch
