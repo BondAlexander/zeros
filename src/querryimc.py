@@ -1,9 +1,6 @@
-#!/usr/bin/env python
-
 import logging
 from pyhpeimc.auth import IMCAuth
 from pyhpeimc.plat.device import get_all_devs
-import os
 
 '''
 This code is based off of the CST_IMC project at Colorado State University's Cybersecurity Internship.
