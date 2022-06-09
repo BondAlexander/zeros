@@ -23,71 +23,7 @@ from netmiko import ConnectHandler
 from netmiko.ssh_exception import NetMikoTimeoutException
 from paramiko.ssh_exception import SSHException
 from netmiko.ssh_exception import AuthenticationException
-
-
-def raw_output_writer(file_name, **values):
-    with open(file_name, 'a') as f:
-        for v in values:
-            f.write(v)
-            f.write('\n')
-
-
-def querry_switch(ip_address_of_device, credentials, file_name, database):
-    new_switch = Switch(ip_address_of_device)
-    num_failed = 0
-    for attempt in [1,2]:
-        print('Connecting to device ' + ip_address_of_device)
-        hp_devices = {
-            'device_type': 'hp_procurve',
-            'ip': ip_address_of_device,
-            'username': credentials['SSH']['username'],
-            'password': credentials['SSH']['password'],
-            'global_delay_factor': .25
-        }
-        try:
-            if attempt == 1:
-                net_connect = ConnectHandler(timeout=3, **hp_devices)
-            else:
-                net_connect = ConnectHandler(timeout=10, **hp_devices)
-        except (AuthenticationException):
-            logging.error('Authentication failure: ' + ip_address_of_device)
-            num_failed += 1
-            break
-        except (NetMikoTimeoutException):
-            if attempt == 1:
-                print(f'-------------------Timeout to device: {ip_address_of_device}\nRetrying...')
-                continue
-            else:
-                logging.error(f'Timeout to device: {ip_address_of_device} Skipping...')
-                num_failed += 1
-                break
-        except (EOFError):
-            logging.error("End of file while attempting device " + ip_address_of_device)
-            num_failed += 1
-            break
-        except (SSHException):
-            logging.error('SSH Issue. Are you sure SSH is enabled? ' + ip_address_of_device)
-            num_failed += 1
-            break
-        except Exception as unknown_error:
-            logging.error('Some other error: ' + str(unknown_error))
-            num_failed += 1
-            break
-        try:
-            sysoutput = net_connect.send_command_expect('show system', expect_string=r"")
-            intoutput = net_connect.send_command_expect('show interface', expect_string=r"")
-        except OSError as e:
-            logging.error(f'Unexpected output format received from {ip_address_of_device}: \"{e}\"')
-            continue
-        linebreak = "*-*-*-*-" * 15
-        finish = datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
-        net_connect.disconnect()
-        print('Operation Complete - ' + finish)
-        print('\n')
-        new_switch.read_output(intoutput, database)
-        raw_output_writer(f'output/{file_name}', ip_address_of_device, sysoutput, intoutput, linebreak, finish)
-        break
-    return num_failed, new_switch
+from src.switchquerrier import SwitchQuerrier
 
 
 def verify_file_structure():
@@ -133,8 +69,9 @@ def main():
         devices_list = f.read().splitlines()
     print('Begin operation - ')
     num_failed = 0
+    sq = SwitchQuerrier(credentials, file_name, data_base)
     with concurrent.futures.ThreadPoolExecutor(max_workers=16) as executor:
-        results = executor.map(querry_switch, devices_list, repeat(credentials), repeat(file_name), repeat(data_base))
+        results = executor.map(sq.querry_switch, devices_list)
         for failed, switch in results:
             data_base.update_switch_info(switch)
             num_failed += failed
