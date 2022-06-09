@@ -1,5 +1,4 @@
-
-from src.datastructures import Switch, Database
+from src.datastructures import Switch
 import logging
 import datetime
 from netmiko import ConnectHandler
