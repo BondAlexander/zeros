@@ -33,10 +33,11 @@ def setup_logging(file_name):
     logging.getLogger('paramiko.transport').setLevel(logging.CRITICAL)
 
 
-def handle_arguments():
+def handle_arguments(credentials, email_handler):
     parser = argparse.ArgumentParser(description='Arguments for Zeros Program')
     parser.add_argument("-l", "--load-folder", help="Load database from folder of raw output files")
     parser.add_argument("-d", "--project-directory", help="Specify path to project directory (useful for crontab)")
+    parser.add_argument("-u", "--update-from-IMC", help="Automatically update completed_devices_file from IMC")
     args = parser.parse_args()
     if args.load_folder:
         print(f'\nLoading from \'{args.load_folder}\' and creating local database \'database.pickle\'...')
@@ -47,19 +48,23 @@ def handle_arguments():
         exit(0)
     if args.project_directory:
         os.chdir(args.project_directory)
+    if args.update_from_IMC:
+        new_switch_list = querryimc.querry_imc(credentials)
+        num_changes = SwitchQuerrier.update_list(new_switch_list)
+        email_handler.update_email_body(num_ip_changes=num_changes)
     return args
 
 
 def main():
-    handle_arguments()
+    with open('config.json', 'r') as fd:
+        credentials = json.loads(fd.read())
+    email_handler = EmailHandler()
+    handle_arguments(credentials, email_handler)
     file_name = datetime.datetime.now().strftime("%Y%m%d-%H%M")
     verify_file_structure()
     setup_logging(f'logs/{file_name}.log')
     data_base = Database()
-    data_base.load()
-    with open('config.json', 'r') as fd:
-        credentials = json.loads(fd.read())
-    num_changes = querryimc.querry_imc(credentials)
+    data_base.load()    
     with open('completed_devices_file') as f:
         devices_list = f.read().splitlines()
     print('Begin operation - ')
@@ -71,10 +76,9 @@ def main():
             data_base.update_switch_info(switch)
             num_failed += failed
     print('Operation Complete - ')
-    email_handler = EmailHandler()
     data_base.save()
     data_base.generate_innactivity_report()
-    email_handler.update_email_body(num_changes, num_failed, len(devices_list))
+    email_handler.update_email_body(num_failed=num_failed, num_devices=len(devices_list))
     email_handler.send_update_email(file_name)
 
 if __name__ == '__main__':
