@@ -25,11 +25,11 @@ from paramiko.ssh_exception import SSHException
 from netmiko.ssh_exception import AuthenticationException
 
 
-def to_doc_a(file_name, varable):
-    f=open(file_name, 'a')
-    f.write(varable)
-    f.write('\n')
-    f.close()
+def raw_output_writer(file_name, **values):
+    with open(file_name, 'a') as f:
+        for v in values:
+            f.write(v)
+            f.write('\n')
 
 
 def querry_switch(ip_address_of_device, credentials, file_name, database):
@@ -39,7 +39,7 @@ def querry_switch(ip_address_of_device, credentials, file_name, database):
         print('Connecting to device ' + ip_address_of_device)
         hp_devices = {
             'device_type': 'hp_procurve',
-            'ip': ip_address_of_device, 
+            'ip': ip_address_of_device,
             'username': credentials['SSH']['username'],
             'password': credentials['SSH']['password'],
             'global_delay_factor': .25
@@ -83,16 +83,12 @@ def querry_switch(ip_address_of_device, credentials, file_name, database):
         finish = datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
         net_connect.disconnect()
         print('Operation Complete - ' + finish)
-        print('\n' * 1)
+        print('\n')
         #Append the output to the results file
-        
+
         new_switch.read_output(intoutput, database)
 
-        to_doc_a(f'output/{file_name}', ip_address_of_device)
-        to_doc_a(f'output/{file_name}', sysoutput)
-        to_doc_a(f'output/{file_name}', intoutput)
-        to_doc_a(f'output/{file_name}', linebreak)
-        to_doc_a(f'output/{file_name}', finish)
+        raw_output_writer(f'output/{file_name}', ip_address_of_device, sysoutput, intoutput, linebreak, finish)
         break
     return num_failed, new_switch
 
