@@ -42,6 +42,7 @@ querried.
             self.body = self.body.replace('<INSERT NUMBER OF DEVICES>', str(num_devices))
 
     def send_update_email(self, fname):
+        self.update_email_body(num_ip_changes=-1, num_failed=-1, num_devices=-1)
         self.msg['Subject'] = 'Daily Switch Ports Update'
         self.msg['From'] = self.username
         self.msg['To'] = self.recipient
