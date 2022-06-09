@@ -33,12 +33,16 @@ querried.
             self.port = config.get('port')
             self.recipient = config.get('recipient')
 
-    def update_email_body(self, num_ip_changes, num_failed, num_devices):
-        self.body = self.body.replace('<INSERT NUMBER OF CHANGES>', str(num_ip_changes))
-        self.body = self.body.replace('<NUMBER OF FAILED CONNECTIONS>', str(num_failed))
-        self.body = self.body.replace('<INSERT NUMBER OF DEVICES>', str(num_devices))
+    def update_email_body(self, num_ip_changes=None, num_failed=None, num_devices=None):
+        if num_ip_changes:
+            self.body = self.body.replace('<INSERT NUMBER OF CHANGES>', str(num_ip_changes))
+        if num_failed:
+            self.body = self.body.replace('<NUMBER OF FAILED CONNECTIONS>', str(num_failed))
+        if num_devices:
+            self.body = self.body.replace('<INSERT NUMBER OF DEVICES>', str(num_devices))
 
     def send_update_email(self, fname):
+        self.update_email_body(num_ip_changes=-1, num_failed=-1, num_devices=-1)
         self.msg['Subject'] = 'Daily Switch Ports Update'
         self.msg['From'] = self.username
         self.msg['To'] = self.recipient

@@ -13,81 +13,12 @@ import datetime
 import logging
 import json
 import concurrent.futures
-from itertools import repeat
 import os
 import argparse
-from src.datastructures import Database, Switch
+from src.datastructures import Database
 import src.querryimc as querryimc
 from src.emailhandler import EmailHandler
-from netmiko import ConnectHandler
-from netmiko.ssh_exception import NetMikoTimeoutException
-from paramiko.ssh_exception import SSHException
-from netmiko.ssh_exception import AuthenticationException
-
-
-def raw_output_writer(file_name, **values):
-    with open(file_name, 'a') as f:
-        for v in values:
-            f.write(v)
-            f.write('\n')
-
-
-def querry_switch(ip_address_of_device, credentials, file_name, database):
-    new_switch = Switch(ip_address_of_device)
-    num_failed = 0
-    for attempt in [1,2]:
-        print('Connecting to device ' + ip_address_of_device)
-        hp_devices = {
-            'device_type': 'hp_procurve',
-            'ip': ip_address_of_device,
-            'username': credentials['SSH']['username'],
-            'password': credentials['SSH']['password'],
-            'global_delay_factor': .25
-        }
-        try:
-            if attempt == 1:
-                net_connect = ConnectHandler(timeout=3, **hp_devices)
-            else:
-                net_connect = ConnectHandler(timeout=10, **hp_devices)
-        except (AuthenticationException):
-            logging.error('Authentication failure: ' + ip_address_of_device)
-            num_failed += 1
-            break
-        except (NetMikoTimeoutException):
-            if attempt == 1:
-                print(f'-------------------Timeout to device: {ip_address_of_device}\nRetrying...')
-                continue
-            else:
-                logging.error(f'Timeout to device: {ip_address_of_device} Skipping...')
-                num_failed += 1
-                break
-        except (EOFError):
-            logging.error("End of file while attempting device " + ip_address_of_device)
-            num_failed += 1
-            break
-        except (SSHException):
-            logging.error('SSH Issue. Are you sure SSH is enabled? ' + ip_address_of_device)
-            num_failed += 1
-            break
-        except Exception as unknown_error:
-            logging.error('Some other error: ' + str(unknown_error))
-            num_failed += 1
-            break
-        try:
-            sysoutput = net_connect.send_command_expect('show system', expect_string=r"")
-            intoutput = net_connect.send_command_expect('show interface', expect_string=r"")
-        except OSError as e:
-            logging.error(f'Unexpected output format received from {ip_address_of_device}: \"{e}\"')
-            continue
-        linebreak = "*-*-*-*-" * 15
-        finish = datetime.datetime.now().strftime("%Y%m%d-%H:%M:%S")
-        net_connect.disconnect()
-        print('Operation Complete - ' + finish)
-        print('\n')
-        new_switch.read_output(intoutput, database)
-        raw_output_writer(f'output/{file_name}', ip_address_of_device, sysoutput, intoutput, linebreak, finish)
-        break
-    return num_failed, new_switch
+from src.switchquerrier import SwitchQuerrier
 
 
 def verify_file_structure():
@@ -102,10 +33,11 @@ def setup_logging(file_name):
     logging.getLogger('paramiko.transport').setLevel(logging.CRITICAL)
 
 
-def handle_arguments():
+def handle_arguments(credentials, email_handler):
     parser = argparse.ArgumentParser(description='Arguments for Zeros Program')
     parser.add_argument("-l", "--load-folder", help="Load database from folder of raw output files")
     parser.add_argument("-d", "--project-directory", help="Specify path to project directory (useful for crontab)")
+    parser.add_argument("-u", "--update-from-IMC", action='store_true', help="Automatically update completed_devices_file from IMC")
     args = parser.parse_args()
     if args.load_folder:
         print(f'\nLoading from \'{args.load_folder}\' and creating local database \'database.pickle\'...')
@@ -116,33 +48,37 @@ def handle_arguments():
         exit(0)
     if args.project_directory:
         os.chdir(args.project_directory)
+    if args.update_from_IMC:
+        new_switch_list = querryimc.querry_imc(credentials)
+        num_changes = SwitchQuerrier.update_list(new_switch_list)
+        email_handler.update_email_body(num_ip_changes=num_changes)
     return args
 
 
 def main():
-    handle_arguments()
-    file_name = datetime.datetime.now().strftime("%Y%m%d-%H%M")
-    verify_file_structure()
-    setup_logging(f'logs/{file_name}.log')
-    data_base = Database()
-    data_base.load()
     with open('config.json', 'r') as fd:
         credentials = json.loads(fd.read())
-    num_changes = querryimc.querry_imc(credentials)
+    email_handler = EmailHandler()
+    handle_arguments(credentials, email_handler)
+    print('Begin operation - ')
+    verify_file_structure()
+    file_name = datetime.datetime.now().strftime("%Y%m%d-%H%M")
+    setup_logging(f'logs/{file_name}.log')
+    data_base = Database()
+    data_base.load()    
     with open('completed_devices_file') as f:
         devices_list = f.read().splitlines()
-    print('Begin operation - ')
     num_failed = 0
+    sq = SwitchQuerrier(credentials, file_name, data_base)
     with concurrent.futures.ThreadPoolExecutor(max_workers=16) as executor:
-        results = executor.map(querry_switch, devices_list, repeat(credentials), repeat(file_name), repeat(data_base))
+        results = executor.map(sq.querry_switch, devices_list)
         for failed, switch in results:
             data_base.update_switch_info(switch)
             num_failed += failed
     print('Operation Complete - ')
-    email_handler = EmailHandler()
     data_base.save()
     data_base.generate_innactivity_report()
-    email_handler.update_email_body(num_changes, num_failed, len(devices_list))
+    email_handler.update_email_body(num_failed=num_failed, num_devices=len(devices_list))
     email_handler.send_update_email(file_name)
 
 if __name__ == '__main__':
