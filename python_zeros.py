@@ -13,16 +13,11 @@ import datetime
 import logging
 import json
 import concurrent.futures
-from itertools import repeat
 import os
 import argparse
-from src.datastructures import Database, Switch
+from src.datastructures import Database
 import src.querryimc as querryimc
 from src.emailhandler import EmailHandler
-from netmiko import ConnectHandler
-from netmiko.ssh_exception import NetMikoTimeoutException
-from paramiko.ssh_exception import SSHException
-from netmiko.ssh_exception import AuthenticationException
 from src.switchquerrier import SwitchQuerrier
 
 
