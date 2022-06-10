@@ -140,6 +140,12 @@ class Switch:
                 continue
             if data_start and len(columns) > 2:
                 self.add_data_to_port(columns, epoch_days=epoch_days)
+        self.pad_data(database, epoch_days)
+
+    '''
+    This method is used by read_output() to pad any missing port entry that was previously reported with 0s
+    '''
+    def pad_data(self, database, epoch_days):
         for port in self.port_list.values():
             if len(port) != database.days_recorded:
                 for _ in range(database.days_recorded - len(port)):
