@@ -20,7 +20,10 @@ import src.querryimc as querryimc
 from src.emailhandler import EmailHandler
 from src.switchquerrier import SwitchQuerrier
 
-
+'''
+This function is just to make sure that the logs/ and output/ directories are set up in the project directory. If they 
+do not exist, this function creates them
+'''
 def verify_file_structure():
     if not os.path.exists('logs/'):
         os.mkdir('logs/')
@@ -28,11 +31,18 @@ def verify_file_structure():
         os.mkdir('output/')
 
 
+'''
+This function sets up the basic logging information such as the file that logs are committed to and the logging level
+'''
 def setup_logging(file_name):
     logging.basicConfig(filename=file_name)
     logging.getLogger('paramiko.transport').setLevel(logging.CRITICAL)
 
 
+'''
+This function creates arguments for the project along with their help info. The funtion then parses the arguments and handles what needs 
+to be done at the program's start accordingly
+'''
 def handle_arguments(credentials, email_handler):
     parser = argparse.ArgumentParser(description='Arguments for Zeros Program')
     parser.add_argument("-l", "--load-folder", help="Load database from folder of raw output files")
@@ -55,6 +65,13 @@ def handle_arguments(credentials, email_handler):
     return args
 
 
+'''
+This is the main function to run the project. It starts by loading the config file, creating the EmailHandler object and handling 
+arguments for the project. The function then verifies the file structure, sets up the logging information and instantiates then loads 
+the database. The function then starts the main functionality of the program by opening the completed_devices_file, and sets up many 
+threads of SwitchQuerrier.querry_switch() to ssh into all switches and run a show command and parse that data to be put into the database.
+Once all switches are querried, the program saves the database and sends the update email
+'''
 def main():
     with open('config.json', 'r') as fd:
         credentials = json.loads(fd.read())
