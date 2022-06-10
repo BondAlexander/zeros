@@ -7,6 +7,10 @@ from paramiko.ssh_exception import SSHException
 from netmiko.ssh_exception import AuthenticationException
 
 
+'''
+The SwitchQuerrier class instantiates an object that retrieves data from all switches specified in completed_devices_file.
+This class also has several static methods for updating the completed_devices_file
+'''
 class SwitchQuerrier:
     def __init__(self, credentials, file_name, database):
         self.hp_devices = {
@@ -19,9 +23,17 @@ class SwitchQuerrier:
         self.file_name = file_name
         self.database = database
 
+    '''
+    This is an internal helper method for updating the SwitchQuerrier ip field in self.hp_devices
+    '''
     def _update_ip(self, new_ip):
         self.hp_devices['ip'] = new_ip
 
+    '''
+    This method is given a switch IP and querries the switch at that IP and calls a method that parses the output of the show command
+    while handling common exceptions associated with failed connections and logs them to the .log file. The method then returns the update
+    of the total number of switches that have failed along with a new object for the switch that was querried
+    '''
     def querry_switch(self, switch_ip):
         self._update_ip(switch_ip)
         new_switch = Switch(switch_ip)
@@ -72,6 +84,9 @@ class SwitchQuerrier:
             break
         return num_failed, new_switch
 
+    '''
+    This method updates the list of switch IPs stored in the completed_devices_file and calls on a method to log the changes made
+    '''
     @staticmethod
     def update_list(new_switch_list):
         num_changes = 0
@@ -83,6 +98,9 @@ class SwitchQuerrier:
             fd.write('\n'.join(new_switch_ips))
         return num_changes
 
+    '''
+    This method is meant to receive the switch list returned by IMC and return only the IPs of devices identified as network switches
+    '''
     @staticmethod
     def parse_switch_list(dict):
         switch_list = []
@@ -91,6 +109,9 @@ class SwitchQuerrier:
                 switch_list.append(item['ip'])
         return switch_list
 
+    '''
+    This method is for logging any changes made between the old_switch_ips list and the new_switch_ips list
+    '''
     @staticmethod
     def log_switch_updates(old_switch_ips, new_switch_ips):
         for ip in old_switch_ips:
@@ -102,6 +123,10 @@ class SwitchQuerrier:
                 logging.warning(f'Adding {ip} to list of switches')
                 num_changes += 1
 
+    '''
+    This method is for writing all data to the raw switch output file specified for file_name. The second parameter takes a variable
+    number of arguments that the method loops through, appending all of the variables into the file specified with the first parameter
+    '''
     @staticmethod
     def raw_output_writer(file_name, *args):
         with open(file_name, 'a') as f:
