@@ -7,6 +7,10 @@ This code was forked 2/28/2022
 '''
 
 
+'''
+This function takes the log in information for the IMC server and returns an IMCAuth object on success. On failure the program
+will exit
+'''
 def authenticate_user(ip, port, uname, passwd):
     auth = IMCAuth("http://", str(ip), str(port), uname, passwd)
     if '200' not in str(auth.get_auth()):
@@ -16,6 +20,9 @@ def authenticate_user(ip, port, uname, passwd):
     return auth
 
 
+'''
+This method creates and returns a list of all switches reported to IMC
+'''
 def querry_imc(credentials: dict):
     uname = credentials['IMC']['username']
     passwd= credentials['IMC']['password']
