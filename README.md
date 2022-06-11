@@ -30,7 +30,7 @@ python3 python_zeros.py --help
 ```
 * If you are running the project as an autmated task or cronjob you will need to run the following command
 ```
-python3 python_zeros.py /path/to/project_directory
+python3 python_zeros.py -d /path/to/project_directory
 ```
 * To enable IMC switch list autoupdating run the program with the '-u' flag
 ```
