@@ -46,11 +46,11 @@ querried.
     If the parameter is not specified, the method will skip over it
     '''
     def update_email_body(self, num_ip_changes=None, num_failed=None, num_devices=None):
-        if num_ip_changes:
+        if num_ip_changes != None:
             self.body = self.body.replace('<INSERT NUMBER OF CHANGES>', str(num_ip_changes))
-        if num_failed:
+        if num_failed != None:
             self.body = self.body.replace('<NUMBER OF FAILED CONNECTIONS>', str(num_failed))
-        if num_devices:
+        if num_devices != None:
             self.body = self.body.replace('<INSERT NUMBER OF DEVICES>', str(num_devices))
 
     '''
