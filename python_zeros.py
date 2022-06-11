@@ -1,14 +1,5 @@
 #!/usr/bin/env python3
 
-#v1 Initial base code that handles errors through netmiko.
-#v2 Writing output to a file.
-#v3 integrating username and pw into code
-#v4 Adding start and end times and linebreak
-#v5 Sending output to a file
-#v6 --TODO - Write errors received to file along with screen, add blank lines to file after each switch.
-#v7 Minor tweaks
-#v8 Working with Global Delay Factor and search patterns
-
 import datetime
 import logging
 import json

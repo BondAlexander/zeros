@@ -8,6 +8,8 @@ import time
 import datetime
 import logging
 
+from gpg import Data
+
 
 '''
 The Database class is used to handle the loading, saving and updating of the Python database. By default the database will be 
@@ -135,7 +137,7 @@ class Switch:
     from this stackexchange post https://stackoverflow.com/questions/4146009/python-get-list-indexes-using-regular-expression. The method then pads any missing 
     data with 0s.
     '''
-    def read_output(self, text, database, epoch_days=time.time() // 86400):
+    def read_output(self, text: str, database: Database, epoch_days=time.time() // 86400):
         start_of_data_regex = r'[-|\ ]+'
         if re.match(start_of_data_regex, text):
             lines = [line for line in text.split('\n')]
