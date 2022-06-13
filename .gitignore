@@ -5,3 +5,5 @@ report.txt
 *.pickle
 *.pyc
 *.json
+output/*
+
