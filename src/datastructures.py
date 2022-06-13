@@ -1,7 +1,6 @@
 import pickle
 import os
 import re
-from pprint import pprint
 from concurrent.futures import ThreadPoolExecutor
 from itertools import repeat
 import time
@@ -105,7 +104,7 @@ class Database:
     '''
     def generate_innactivity_report(self):
         with open('report.csv', 'w') as f:
-            csv_writer = csv.reader(f, delimiter=',', newline='\n')
+            csv_writer = csv.writer(f, delimiter=',')
             for switch in self.switch_list:
                 for port_num, port_traffic in switch.port_list.items():
                     days_innactive = 0
