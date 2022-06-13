@@ -1,7 +1,9 @@
 ._*
 completed_devices_file
 *.log
-report.txt
+report.csv
 *.pickle
 *.pyc
 *.json
+output/*
+
