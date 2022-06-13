@@ -64,7 +64,7 @@ querried.
         self.msg['From'] = self.username
         self.msg['To'] = self.recipient
         self.msg.set_content(self.body)
-        for file in ['report.txt', f'logs/{fname}.log']:
+        for file in ['report.csv', f'logs/{fname}.log']:
             with open(file, 'rb') as fd:
                 file_data = fd.read()
             self.msg.add_attachment(file_data, maintype='application', subtype='octet-stream', filename=file.replace('logs/', ''))

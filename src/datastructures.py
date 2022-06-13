@@ -7,8 +7,7 @@ from itertools import repeat
 import time
 import datetime
 import logging
-
-from gpg import Data
+import csv
 
 
 '''
@@ -105,22 +104,20 @@ class Database:
     that lists the days innactive of each port
     '''
     def generate_innactivity_report(self):
-        report = ""
-        for switch in self.switch_list:
-            for port_num, port_traffic in switch.port_list.items():
-                days_innactive = 0
-                for index, traffic in enumerate(reversed(port_traffic)):
-                    if index == 0:
-                        continue
-                    elif traffic['activity'] == port_traffic[-index]['activity']:
-                        days_innactive += 1
-                    elif traffic['activity'] > port_traffic[-index-1]['activity']:
-                        break
-                if days_innactive >= 90:
-                    report += (f'{switch.switch_ip}:{port_num} inactive {days_innactive} days\n')
-            report += '\n'
-        with open('report.txt', 'w') as fd:
-            fd.write(report)
+        with open('report.csv', 'w') as f:
+            csv_writer = csv.reader(f, delimiter=',', newline='\n')
+            for switch in self.switch_list:
+                for port_num, port_traffic in switch.port_list.items():
+                    days_innactive = 0
+                    for index, traffic in enumerate(reversed(port_traffic)):
+                        if index == 0:
+                            continue
+                        elif traffic['activity'] == port_traffic[-index]['activity']:
+                            days_innactive += 1
+                        elif traffic['activity'] > port_traffic[-index-1]['activity']:
+                            break
+                    if days_innactive >= 90:
+                        csv_writer.write_row(f'{switch.switch_ip}:{port_num},{days_innactive}\n')
                 
 
 '''
