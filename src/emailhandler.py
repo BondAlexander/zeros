@@ -39,7 +39,7 @@ querried.
             self.password = config.get('password')
             self.server = config.get('server')
             self.port = config.get('port')
-            self.recipient = config.get('recipient')
+            self.recipients = config.get('recipients')
 
     '''
     This method updates the email body with the given parameters. If a tag has already been updated the method will skip over it
@@ -62,7 +62,7 @@ querried.
         self.update_email_body(num_ip_changes=-1, num_failed=-1, num_devices=-1)
         self.msg['Subject'] = 'Daily Switch Ports Update'
         self.msg['From'] = self.username
-        self.msg['To'] = self.recipient
+        self.msg['To'] = ', '.join(self.recipients)
         self.msg.set_content(self.body)
         for file in ['report.csv', f'logs/{fname}.log']:
             with open(file, 'rb') as fd:

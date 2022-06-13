@@ -105,6 +105,8 @@ class Database:
     def generate_innactivity_report(self):
         with open('report.csv', 'w') as f:
             csv_writer = csv.writer(f, delimiter=',')
+            headers = ['Port Description', 'Days Innactive']
+            csv_writer.writerow(headers)
             for switch in self.switch_list:
                 for port_num, port_traffic in switch.port_list.items():
                     days_innactive = 0
@@ -116,7 +118,9 @@ class Database:
                         elif traffic['activity'] > port_traffic[-index-1]['activity']:
                             break
                     if days_innactive >= 90:
-                        csv_writer.write_row(f'{switch.switch_ip}:{port_num},{days_innactive}\n')
+                        port_description = f'{switch.switch_ip}:{port_num}'
+
+                        csv_writer.writerow([port_description, days_innactive])
                 
 
 '''
