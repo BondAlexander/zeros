@@ -2,7 +2,7 @@
     "IMC": {
         "username": "",
         "password": "",
-        "server": ""
+        "server": "",
         "port": 0
     },
     "SSH": {
