@@ -34,7 +34,7 @@ def setup_logging(file_name):
 This function creates arguments for the project along with their help info. The funtion then parses the arguments and handles what needs 
 to be done at the program's start accordingly
 '''
-def handle_arguments(credentials, email_handler):
+def handle_arguments(email_handler):
     parser = argparse.ArgumentParser(description='Arguments for Zeros Program')
     parser.add_argument("-l", "--load-folder", help="Load database from folder of raw output files")
     parser.add_argument("-d", "--project-directory", help="Specify path to project directory (useful for crontab)")
@@ -49,11 +49,13 @@ def handle_arguments(credentials, email_handler):
         exit(0)
     if args.project_directory:
         os.chdir(args.project_directory)
+    with open('config.json', 'r') as fd:
+            config = json.loads(fd.read())
     if args.update_from_IMC:
-        new_switch_list = querryimc.querry_imc(credentials)
+        new_switch_list = querryimc.querry_imc(config)
         num_changes = SwitchQuerrier.update_list(new_switch_list)
         email_handler.update_email_body(num_ip_changes=num_changes)
-    return args
+    return args, config
 
 
 '''
@@ -64,10 +66,8 @@ threads of SwitchQuerrier.querry_switch() to ssh into all switches and run a sho
 Once all switches are querried, the program saves the database and sends the update email
 '''
 def main():
-    with open('config.json', 'r') as fd:
-        credentials = json.loads(fd.read())
     email_handler = EmailHandler()
-    handle_arguments(credentials, email_handler)
+    _, config = handle_arguments(email_handler)
     print('Begin operation - ')
     verify_file_structure()
     file_name = datetime.datetime.now().strftime("%Y%m%d-%H%M")
@@ -77,7 +77,7 @@ def main():
     with open('completed_devices_file') as f:
         devices_list = f.read().splitlines()
     num_failed = 0
-    sq = SwitchQuerrier(credentials, file_name, data_base)
+    sq = SwitchQuerrier(config, file_name, data_base)
     with concurrent.futures.ThreadPoolExecutor(max_workers=16) as executor:
         results = executor.map(sq.querry_switch, devices_list)
         for failed, switch in results:
