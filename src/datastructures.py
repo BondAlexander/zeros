@@ -139,7 +139,7 @@ class Switch:
     '''
     def read_output(self, text: str, database: Database, epoch_days=time.time() // 86400):
         start_of_data_regex = r'[-|\ ]+'
-        if re.match(start_of_data_regex, text):
+        if re.search(start_of_data_regex, text):
             lines = [line for line in text.split('\n')]
             index_data_start = [line for line, item in enumerate(lines) if re.search(start_of_data_regex, item)][0] + 1
             for line in lines[index_data_start:]:
