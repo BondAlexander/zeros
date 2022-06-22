@@ -138,9 +138,9 @@ class Switch:
     data with 0s.
     '''
     def read_output(self, text: str, database: Database, epoch_days=time.time() // 86400):
-        start_of_data_regex = r'[-|\ ]+'
-        if re.search(start_of_data_regex, text):
-            lines = [line for line in text.split('\n')]
+        start_of_data_regex = r'-{2,99}'
+        if len(re.findall(start_of_data_regex, text)) >= 2:
+            lines = text.split('\n')
             index_data_start = [line for line, item in enumerate(lines) if re.search(start_of_data_regex, item)][0] + 1
             for line in lines[index_data_start:]:
                 columns = [i.replace(',', '') for i in line.split(' ') if i != '']
